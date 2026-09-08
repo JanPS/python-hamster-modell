@@ -158,5 +158,25 @@ linksUm()
   check('+= weiterhin ok', (() => { try { parse('i = 0\ni += 1\n'); return true; } catch { return false; } })());
 }
 
+// Test 9: Zuweisungen erzeugen einen hervorhebbaren Schritt
+{
+  const territory = makeTerritory(['#####', '#...#', '#####'], { row: 1, col: 1, dir: 1, grain: 0 });
+  const src = [
+    'schritte = 0',      // Zeile 1
+    'while vornFrei():',  // Zeile 2
+    '    vor()',          // Zeile 3
+    '    schritte += 1',  // Zeile 4
+    'print(schritte)',    // Zeile 5
+  ].join('\n');
+  const ast = parse(src);
+  const result = new Interpreter(territory).run(ast);
+  check('zuweisung: kein fehler', result.error === null, result.error);
+  const assignFrames = result.frames.filter((f) => f.line === 4);
+  check('zuweisung: zeile 4 als schritt erfasst', assignFrames.length === 2, assignFrames.length);
+  check('zuweisung: label zeigt neuen wert', assignFrames[1].label === 'schritte = 2', assignFrames[1].label);
+  check('zuweisung: hamster-snapshot unveraendert uebernommen',
+    assignFrames[0].snapshot.hCol === 2, assignFrames[0].snapshot.hCol);
+}
+
 console.log(failures === 0 ? '\nALLE TESTS OK' : `\n${failures} TEST(S) FEHLGESCHLAGEN`);
 process.exit(failures === 0 ? 0 : 1);

@@ -398,6 +398,7 @@ class PyFunction {
 const MAX_STEPS = 200000;
 const MAX_CALL_DEPTH = 300;
 const MAX_MS = 4000;
+const MAX_FRAMES = 40000;
 
 class Interpreter {
   constructor(hamster, opts = {}) {
@@ -411,12 +412,14 @@ class Interpreter {
   }
 
   pushFrame(label, line, extra) {
+    extra = extra || {};
+    if (this.frames.length >= MAX_FRAMES && !extra.error) return;
     this.frames.push({
       label,
       line: line || null,
       console: this.consoleText,
-      snapshot: this.hamster.snapshot(),
-      error: extra && extra.error ? extra.error : null,
+      snapshot: extra.snapshot || this.hamster.snapshot(),
+      error: extra.error || null,
     });
   }
 
@@ -465,6 +468,8 @@ class Interpreter {
           value = applyBinOp(node.op.slice(0, -1), cur, value, node.line);
         }
         env.set(node.name, value);
+        const prev = this.frames[this.frames.length - 1];
+        this.pushFrame(node.name + ' = ' + pyStr(value), node.line, prev ? { snapshot: prev.snapshot } : null);
         return;
       }
       case 'If': {

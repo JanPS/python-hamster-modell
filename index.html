@@ -298,6 +298,9 @@
     color: var(--ink-soft);
     white-space: nowrap;
     min-width: 12ch;
+    max-width: 22ch;
+    overflow: hidden;
+    text-overflow: ellipsis;
     text-align: right;
   }
   .speed-row { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: var(--ink-soft); }
@@ -765,6 +768,7 @@
   const MAX_STEPS_DEFAULT = 200000;
   const MAX_CALL_DEPTH = 300;
   const MAX_MS = 4000;
+  const MAX_FRAMES = 40000;
 
   class Interpreter {
     constructor(hamster, opts) {
@@ -778,7 +782,9 @@
       this.maxSteps = opts.maxSteps || MAX_STEPS_DEFAULT;
     }
     pushFrame(label, line, extra) {
-      this.frames.push({ label, line: line || null, console: this.consoleText, snapshot: this.hamster.snapshot(), error: (extra && extra.error) ? extra.error : null });
+      extra = extra || {};
+      if (this.frames.length >= MAX_FRAMES && !extra.error) return;
+      this.frames.push({ label, line: line || null, console: this.consoleText, snapshot: extra.snapshot || this.hamster.snapshot(), error: extra.error || null });
     }
     checkBudget(line) {
       this.stepCount++;
@@ -809,7 +815,10 @@
             if (cur === undefined) throw new PyError(`Zeile ${node.line}: '${node.name}' ist nicht definiert`, node.line);
             value = applyBinOp(node.op.slice(0, -1), cur, value, node.line);
           }
-          env.set(node.name, value); return;
+          env.set(node.name, value);
+          const prev = this.frames[this.frames.length - 1];
+          this.pushFrame(node.name + ' = ' + pyStr(value), node.line, prev ? { snapshot: prev.snapshot } : null);
+          return;
         }
         case 'If':
           if (truthy(this.evalExpr(node.test, env))) this.execBlock(node.consequent, env);
@@ -1261,7 +1270,7 @@
     if (!state.frames) return;
     const frame = state.frames[state.frameIndex];
     els.frameSlider.value = String(state.frameIndex);
-    els.frameLabel.textContent = 'Schritt ' + state.frameIndex + ' / ' + (state.frames.length - 1);
+    els.frameLabel.textContent = 'Schritt ' + state.frameIndex + ' / ' + (state.frames.length - 1) + (frame.label ? ' · ' + frame.label : '');
     els.consoleBox.textContent = frame.console || '';
     if (!frame.console) els.consoleBox.innerHTML = '<span class="placeholder">Ausgaben von print() erscheinen hier…</span>';
     drawTerritory(frame.snapshot, false);
