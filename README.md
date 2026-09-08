@@ -6,6 +6,9 @@ Ein Port des [Java-Hamster-Modells](https://www.java-hamster-modell.de/simulator
 
 Einfach `index.html` im Browser öffnen – lokal per Doppelklick oder über einen beliebigen statischen Webserver (z. B. den Schulserver, GitHub Pages, oder `python3 -m http.server`). Es gibt keine Abhängigkeiten, keinen Build-Schritt und keine externen Laufzeit-Downloads außer den Google-Fonts-Schriftschnitten.
 
+### Direkt testen
+unter https://janps.github.io/python-hamster-modell/
+
 ## Funktionsumfang
 
 - **Original-Hamster-Befehle:** `vor()`, `linksUm()`, `nimm()`, `gib()`, `vornFrei()`, `kornDa()`, `maulLeer()` – plus die praktischen Zusatzbefehle `rechtsUm()` und `kehrt()`
