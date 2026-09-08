@@ -414,13 +414,32 @@ class Interpreter {
   pushFrame(label, line, extra) {
     extra = extra || {};
     if (this.frames.length >= MAX_FRAMES && !extra.error) return;
+    const prev = this.frames[this.frames.length - 1];
+    let vars = this.snapshotVars();
+    if (prev && sameVars(prev.vars, vars)) vars = prev.vars;
     this.frames.push({
       label,
       line: line || null,
       console: this.consoleText,
       snapshot: extra.snapshot || this.hamster.snapshot(),
+      vars,
       error: extra.error || null,
     });
+  }
+
+  snapshotVars() {
+    const chain = [];
+    for (let e = this.currentEnv; e; e = e.parent) chain.push(e);
+    const out = [];
+    const idx = new Map();
+    for (let k = chain.length - 1; k >= 0; k--) {
+      for (const [name, value] of chain[k].vars) {
+        if (value instanceof PyFunction) continue;
+        if (idx.has(name)) out[idx.get(name)] = [name, value];
+        else { idx.set(name, out.length); out.push([name, value]); }
+      }
+    }
+    return out;
   }
 
   checkBudget(line) {
@@ -436,6 +455,7 @@ class Interpreter {
   run(ast) {
     this.startTime = Date.now();
     const globalEnv = new Env(null);
+    this.currentEnv = globalEnv;
     this.pushFrame('Start', null);
     try {
       this.execBlock(ast.body, globalEnv);
@@ -616,14 +636,17 @@ class Interpreter {
     }
     const callEnv = new Env(fn.closureEnv);
     fn.node.params.forEach((p, i) => callEnv.declare(p, argVals[i]));
+    const prevEnv = this.currentEnv;
+    this.currentEnv = callEnv;
     let ret = null;
     try {
       this.execBlock(fn.node.body, callEnv);
     } catch (e) {
       if (e instanceof ReturnSignal) ret = e.value;
-      else { this.callDepth--; throw e; }
+      else { this.callDepth--; this.currentEnv = prevEnv; throw e; }
     }
     this.callDepth--;
+    this.currentEnv = prevEnv;
     return ret;
   }
 }
@@ -640,6 +663,14 @@ function pyStr(v) {
   if (v === true) return 'True';
   if (v === false) return 'False';
   return String(v);
+}
+function pyRepr(v) { return typeof v === 'string' ? '"' + v + '"' : pyStr(v); }
+function sameVars(a, b) {
+  if (!a || a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i++) {
+    if (a[i][0] !== b[i][0] || a[i][1] !== b[i][1]) return false;
+  }
+  return true;
 }
 function applyBinOp(op, l, r, line) {
   switch (op) {

@@ -262,6 +262,35 @@
   .console-box:empty::before,
   .console-box .placeholder { color: var(--code-ink-soft); font-style: italic; }
 
+  /* ---------- Variablen-Monitor ---------- */
+  .var-monitor {
+    margin-top: 10px;
+    background: var(--code-bg);
+    border: 1px solid var(--code-bg-2);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+  .var-monitor-title {
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: var(--code-ink-soft);
+    margin-bottom: 7px;
+  }
+  .var-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 5px 16px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 0.8rem;
+    line-height: 1.4;
+  }
+  .var-list .var-item { display: flex; gap: 6px; min-width: 0; }
+  .var-list .var-name { color: var(--code-accent); flex: none; }
+  .var-list .var-eq { color: var(--code-ink-soft); flex: none; }
+  .var-list .var-val { color: var(--code-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .var-monitor .var-empty { color: var(--code-ink-soft); font-style: italic; font-size: 0.8rem; }
+
   .error-banner {
     margin-top: 10px;
     background: var(--danger-soft);
@@ -451,6 +480,11 @@
       </div>
 
       <div class="console-box" id="consoleBox"><span class="placeholder">Ausgaben von print() erscheinen hier…</span></div>
+
+      <div class="var-monitor" id="varMonitor" style="display:none;">
+        <div class="var-monitor-title">Variablen</div>
+        <div class="var-list" id="varList"></div>
+      </div>
     </section>
 
     <!-- ===== Rechte Spalte: Territorium ===== -->
@@ -535,7 +569,7 @@
     <p>Listen, Dictionaries, Klassen, Imports, f-Strings, Slicing. Für den Hamster reicht das eingebaute Sprach-Subset völlig &ndash; das hält den Fokus auf Kontrollstrukturen statt auf Python-Vollständigkeit.</p>
 
     <h3>Bedienung</h3>
-    <p>Territorium wählen oder unter &bdquo;Territorium bauen&ldquo; selbst gestalten, Programm links eintippen, auf &bdquo;Start&ldquo; drücken. Danach lässt sich der Ablauf Schritt für Schritt vor- und zurückspulen oder automatisch abspielen.</p>
+    <p>Territorium wählen oder unter &bdquo;Territorium bauen&ldquo; selbst gestalten, Programm links eintippen, auf &bdquo;Start&ldquo; drücken. Danach lässt sich der Ablauf Schritt für Schritt vor- und zurückspulen oder automatisch abspielen. Der Variablen-Monitor unter der Ausgabe zeigt zu jedem Schritt den aktuellen Wert aller Variablen.</p>
 
     <div class="modal-close-row"><button class="btn btn-primary" id="btnHelpClose" type="button">Schließen</button></div>
   </div>
@@ -784,7 +818,24 @@
     pushFrame(label, line, extra) {
       extra = extra || {};
       if (this.frames.length >= MAX_FRAMES && !extra.error) return;
-      this.frames.push({ label, line: line || null, console: this.consoleText, snapshot: extra.snapshot || this.hamster.snapshot(), error: extra.error || null });
+      const prev = this.frames[this.frames.length - 1];
+      let vars = this.snapshotVars();
+      if (prev && sameVars(prev.vars, vars)) vars = prev.vars;
+      this.frames.push({ label, line: line || null, console: this.consoleText, snapshot: extra.snapshot || this.hamster.snapshot(), vars, error: extra.error || null });
+    }
+    snapshotVars() {
+      const chain = [];
+      for (let e = this.currentEnv; e; e = e.parent) chain.push(e);
+      const out = [];
+      const idx = new Map();
+      for (let k = chain.length - 1; k >= 0; k--) {
+        for (const [name, value] of chain[k].vars) {
+          if (value instanceof PyFunction) continue;
+          if (idx.has(name)) out[idx.get(name)] = [name, value];
+          else { idx.set(name, out.length); out.push([name, value]); }
+        }
+      }
+      return out;
     }
     checkBudget(line) {
       this.stepCount++;
@@ -794,6 +845,7 @@
     run(ast) {
       this.startTime = Date.now();
       const globalEnv = new Env(null);
+      this.currentEnv = globalEnv;
       this.pushFrame('Start', null);
       try { this.execBlock(ast.body, globalEnv); }
       catch (e) {
@@ -922,16 +974,21 @@
       if (this.callDepth > MAX_CALL_DEPTH) { this.callDepth--; throw new PyError(`Zeile ${node.line}: zu tiefe Rekursion in '${name}'`, node.line); }
       const callEnv = new Env(fn.closureEnv);
       fn.node.params.forEach((p, i) => callEnv.declare(p, argVals[i]));
+      const prevEnv = this.currentEnv;
+      this.currentEnv = callEnv;
       let ret = null;
       try { this.execBlock(fn.node.body, callEnv); }
-      catch (e) { if (e instanceof ReturnSignal) ret = e.value; else { this.callDepth--; throw e; } }
+      catch (e) { if (e instanceof ReturnSignal) ret = e.value; else { this.callDepth--; this.currentEnv = prevEnv; throw e; } }
       this.callDepth--;
+      this.currentEnv = prevEnv;
       return ret;
     }
   }
 
   function truthy(v) { if (v === null || v === undefined) return false; if (typeof v === 'number') return v !== 0; if (typeof v === 'string') return v.length > 0; return !!v; }
   function pyStr(v) { if (v === null || v === undefined) return 'None'; if (v === true) return 'True'; if (v === false) return 'False'; return String(v); }
+  function pyRepr(v) { return typeof v === 'string' ? '"' + v + '"' : pyStr(v); }
+  function sameVars(a, b) { if (!a || a.length !== b.length) return false; for (let i = 0; i < a.length; i++) { if (a[i][0] !== b[i][0] || a[i][1] !== b[i][1]) return false; } return true; }
   function applyBinOp(op, l, r, line) {
     switch (op) {
       case '+': if (typeof l === 'string' || typeof r === 'string') return pyStr(l) + pyStr(r); return l + r;
@@ -1068,7 +1125,7 @@
     btnRun: $('btnRun'), btnEditBack: $('btnEditBack'),
     scrubRow: $('scrubRow'), btnStepBack: $('btnStepBack'), btnPlayPause: $('btnPlayPause'), btnStepFwd: $('btnStepFwd'),
     frameSlider: $('frameSlider'), frameLabel: $('frameLabel'), speedSlider: $('speedSlider'),
-    consoleBox: $('consoleBox'),
+    consoleBox: $('consoleBox'), varMonitor: $('varMonitor'), varList: $('varList'),
     btnLoadProgram: $('btnLoadProgram'), btnSaveProgram: $('btnSaveProgram'), fileProgramInput: $('fileProgramInput'),
     btnModeRun: $('btnModeRun'), btnModeEdit: $('btnModeEdit'), editControls: $('editControls'),
     toolWall: $('toolWall'), toolGrain: $('toolGrain'), toolHamster: $('toolHamster'), toolErase: $('toolErase'),
@@ -1211,6 +1268,7 @@
     els.btnRun.style.display = 'none';
     els.btnEditBack.style.display = 'inline-flex';
     els.scrubRow.style.display = 'flex';
+    els.varMonitor.style.display = 'block';
     els.frameSlider.max = String(Math.max(0, state.frames.length - 1));
   }
   function exitRunState() {
@@ -1221,6 +1279,7 @@
     els.btnRun.style.display = 'inline-flex';
     els.btnEditBack.style.display = 'none';
     els.scrubRow.style.display = 'none';
+    els.varMonitor.style.display = 'none';
     els.errorBanner.style.display = 'none';
     els.editorHighlight.style.display = 'none';
     els.consoleBox.innerHTML = '<span class="placeholder">Ausgaben von print() erscheinen hier…</span>';
@@ -1275,7 +1334,20 @@
     if (!frame.console) els.consoleBox.innerHTML = '<span class="placeholder">Ausgaben von print() erscheinen hier…</span>';
     drawTerritory(frame.snapshot, false);
     updateStats(frame.snapshot);
+    renderVars(frame.vars);
     positionHighlight();
+  }
+
+  function renderVars(vars) {
+    if (!vars || !vars.length) {
+      els.varList.innerHTML = '<span class="var-empty">noch keine Variablen gesetzt</span>';
+      return;
+    }
+    els.varList.innerHTML = vars.map(([name, value]) =>
+      '<span class="var-item"><span class="var-name">' + escapeHtml(name) +
+      '</span><span class="var-eq">=</span><span class="var-val">' + escapeHtml(pyRepr(value)) +
+      '</span></span>'
+    ).join('');
   }
 
   /* ---------- Programm speichern / laden ---------- */

@@ -178,5 +178,45 @@ linksUm()
     assignFrames[0].snapshot.hCol === 2, assignFrames[0].snapshot.hCol);
 }
 
+// Test 10: Variablen-Monitor - jeder Frame trägt den aktuellen Variablenstand
+{
+  const territory = makeTerritory(['#####', '#...#', '#####'], { row: 1, col: 1, dir: 1, grain: 0 });
+  const src = [
+    'name = "Emil"',
+    'schritte = 0',
+    'while vornFrei():',
+    '    vor()',
+    '    schritte += 1',
+  ].join('\n');
+  const result = new Interpreter(territory).run(parse(src));
+  check('monitor: kein fehler', result.error === null, result.error);
+  const last = result.frames[result.frames.length - 1];
+  const map = new Map(last.vars);
+  check('monitor: schritte am ende = 2', map.get('schritte') === 2, JSON.stringify(last.vars));
+  check('monitor: string-variable erhalten', map.get('name') === 'Emil', JSON.stringify(last.vars));
+  const firstAssign = result.frames.find((f) => f.vars.length === 1);
+  check('monitor: erster schritt kennt nur "name"', firstAssign && firstAssign.vars[0][0] === 'name', JSON.stringify(firstAssign && firstAssign.vars));
+}
+
+// Test 11: Monitor zeigt lokale Variablen während eines Funktionsaufrufs
+{
+  const territory = makeTerritory(['####', '#..#', '####'], { row: 1, col: 1, dir: 1, grain: 0 });
+  const src = [
+    'g = 10',
+    'def f(a):',
+    '    b = a + 1',
+    '    return b',
+    'ergebnis = f(5)',
+  ].join('\n');
+  const result = new Interpreter(territory).run(parse(src));
+  check('monitor-lokal: kein fehler', result.error === null, result.error);
+  const insideF = result.frames.find((f) => new Map(f.vars).get('b') === 6);
+  check('monitor-lokal: b=6 sichtbar in f', !!insideF, 'kein frame mit b=6');
+  check('monitor-lokal: g weiterhin sichtbar', insideF && new Map(insideF.vars).get('g') === 10);
+  const last = result.frames[result.frames.length - 1];
+  check('monitor-lokal: b nach rückkehr weg', !new Map(last.vars).has('b'), JSON.stringify(last.vars));
+  check('monitor-lokal: ergebnis=6 global', new Map(last.vars).get('ergebnis') === 6, JSON.stringify(last.vars));
+}
+
 console.log(failures === 0 ? '\nALLE TESTS OK' : `\n${failures} TEST(S) FEHLGESCHLAGEN`);
 process.exit(failures === 0 ? 0 : 1);

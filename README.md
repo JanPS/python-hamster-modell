@@ -10,7 +10,8 @@ Einfach `index.html` im Browser öffnen – lokal per Doppelklick oder über ein
 
 - **Original-Hamster-Befehle:** `vor()`, `linksUm()`, `nimm()`, `gib()`, `vornFrei()`, `kornDa()`, `maulLeer()` – plus die praktischen Zusatzbefehle `rechtsUm()` und `kehrt()`
 - **Python-Subset:** Variablen & Zuweisung (inkl. `+= -= *= /=`), `if/elif/else`, `while`, `for x in range(...)`, `def`/`return` (inkl. Rekursion), `break`/`continue`/`pass`, `print(...)`, Vergleiche, `and/or/not`, die üblichen Rechenoperatoren, Kommentare
-- **Schritt-für-Schritt-Wiedergabe:** Play/Pause, Vor/Zurück, Geschwindigkeitsregler, synchrone Zeilen-Hervorhebung im Code
+- **Schritt-für-Schritt-Wiedergabe:** Play/Pause, Vor/Zurück, Geschwindigkeitsregler, synchrone Zeilen-Hervorhebung im Code (auch für reine Rechenschritte)
+- **Variablen-Monitor:** zeigt zu jedem Schritt alle Variablen und ihren aktuellen Wert; während eines Funktionsaufrufs zusätzlich die lokalen Variablen
 - **Territoriums-Editor:** eigene Territorien klicken (Größe, Wände, Körner, Startposition/-richtung), als JSON speichern/laden
 - **Fünf Beispiel-Territorien** mit Aufgabenstellung, darunter eine gelöste Demo
 - **Programm speichern/laden** als `.py`-Textdatei
