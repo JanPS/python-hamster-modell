@@ -627,6 +627,8 @@
         else tokens.push({ type: 'NAME', value: word, line: lineNo });
         i = j; continue;
       }
+      if (c === '+' && line[i + 1] === '+') throw new PyError(`Zeile ${lineNo}: In Python gibt es kein '++'. Zum Hochzählen einer Variablen: i += 1`, lineNo);
+      if (c === '-' && line[i + 1] === '-') throw new PyError(`Zeile ${lineNo}: In Python gibt es kein '--'. Zum Runterzählen einer Variablen: i -= 1`, lineNo);
       const three = line.slice(i, i + 3);
       if (OPS3.includes(three)) { tokens.push({ type: three, line: lineNo }); i += 3; continue; }
       const two = line.slice(i, i + 2);

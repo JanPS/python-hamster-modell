@@ -141,5 +141,22 @@ linksUm()
   check('linksUm von Norden -> Westen (3)', last.snapshot.hDir === 3, last.snapshot.hDir);
 }
 
+// Test 8: ++ / -- werden mit hilfreicher Meldung abgelehnt
+{
+  try {
+    parse('i = 0\ni++\n');
+    check('++ abgelehnt', false);
+  } catch (e) {
+    check('++ abgelehnt', e instanceof PyError && e.message.includes("kein '++'"), e.message);
+  }
+  try {
+    parse('i = 5\ni--\n');
+    check('-- abgelehnt', false);
+  } catch (e) {
+    check('-- abgelehnt', e instanceof PyError && e.message.includes("kein '--'"), e.message);
+  }
+  check('+= weiterhin ok', (() => { try { parse('i = 0\ni += 1\n'); return true; } catch { return false; } })());
+}
+
 console.log(failures === 0 ? '\nALLE TESTS OK' : `\n${failures} TEST(S) FEHLGESCHLAGEN`);
 process.exit(failures === 0 ? 0 : 1);
