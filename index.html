@@ -1,0 +1,1528 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hamsterbau</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap">
+<style>
+  :root {
+    --paper: #f6f0e3;
+    --paper-2: #efe4cd;
+    --paper-3: #e7d9bb;
+    --ink: #2c2116;
+    --ink-soft: #6d5d47;
+    --ink-faint: #9c8b70;
+    --accent: #b9791f;
+    --accent-strong: #935e14;
+    --accent-ink: #fffaf0;
+    --grain: #55763f;
+    --grain-soft: #dce7cf;
+    --wall: #4a3f34;
+    --wall-top: #6b5c4b;
+    --danger: #a83b26;
+    --danger-soft: #f4ddd4;
+    --line: #d8c69e;
+    --code-bg: #241d14;
+    --code-bg-2: #2c2318;
+    --code-ink: #ecdcb8;
+    --code-ink-soft: #a9997b;
+    --code-accent: #e2ac57;
+    --shadow: 20px 16px 0 rgba(44, 33, 22, 0.06);
+    --radius: 10px;
+    --focus: #935e14;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #1b1610;
+      --paper-2: #241d15;
+      --paper-3: #2e2519;
+      --ink: #ecdfc9;
+      --ink-soft: #b6a687;
+      --ink-faint: #7c705a;
+      --accent: #e0a94a;
+      --accent-strong: #f0bd66;
+      --accent-ink: #241a0a;
+      --grain: #90bb76;
+      --grain-soft: #2c3624;
+      --wall: #cbb992;
+      --wall-top: #ded0ac;
+      --danger: #e2836a;
+      --danger-soft: #3a241d;
+      --line: #3c3222;
+      --code-bg: #14100a;
+      --code-bg-2: #1b160e;
+      --code-ink: #ecd9b0;
+      --code-ink-soft: #8c7f66;
+      --code-accent: #f0bd66;
+      --shadow: 20px 16px 0 rgba(0, 0, 0, 0.28);
+      --focus: #f0bd66;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #1b1610;
+    --paper-2: #241d15;
+    --paper-3: #2e2519;
+    --ink: #ecdfc9;
+    --ink-soft: #b6a687;
+    --ink-faint: #7c705a;
+    --accent: #e0a94a;
+    --accent-strong: #f0bd66;
+    --accent-ink: #241a0a;
+    --grain: #90bb76;
+    --grain-soft: #2c3624;
+    --wall: #cbb992;
+    --wall-top: #ded0ac;
+    --danger: #e2836a;
+    --danger-soft: #3a241d;
+    --line: #3c3222;
+    --code-bg: #14100a;
+    --code-bg-2: #1b160e;
+    --code-ink: #ecd9b0;
+    --code-ink-soft: #8c7f66;
+    --code-accent: #f0bd66;
+    --shadow: 20px 16px 0 rgba(0, 0, 0, 0.28);
+    --focus: #f0bd66;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: "Work Sans", system-ui, sans-serif;
+  }
+  h1, h2, h3 { font-family: "Fraunces", Georgia, serif; font-weight: 600; text-wrap: balance; margin: 0; }
+  code, .mono { font-family: "JetBrains Mono", ui-monospace, monospace; }
+  button, select, input { font-family: inherit; }
+  ::selection { background: var(--accent); color: var(--accent-ink); }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+  .app {
+    max-width: 1360px;
+    margin: 0 auto;
+    padding: 20px 20px 44px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* ---------- Header ---------- */
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    padding: 6px 2px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .brand { display: flex; align-items: center; gap: 10px; margin-right: auto; }
+  .brand svg { width: 40px; height: 40px; flex: none; }
+  .brand-text h1 { font-size: 1.5rem; letter-spacing: -0.01em; }
+  .brand-text p { margin: 1px 0 0; font-size: 0.78rem; color: var(--ink-soft); letter-spacing: 0.02em; }
+
+  .topbar-controls { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  select.example-picker {
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 0.85rem;
+    max-width: 220px;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 1px solid var(--line);
+    background: var(--paper-2);
+    color: var(--ink);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: border-color 0.15s, transform 0.05s;
+    white-space: nowrap;
+  }
+  .btn:hover { border-color: var(--accent); }
+  .btn:active { transform: translateY(1px); }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .btn-primary { background: var(--accent); border-color: var(--accent-strong); color: var(--accent-ink); font-weight: 600; }
+  .btn-primary:hover { border-color: var(--accent-strong); filter: brightness(1.04); }
+  .btn-ghost { background: transparent; }
+  .btn-icon { padding: 8px 10px; font-size: 1rem; line-height: 1; }
+  .btn-sm { padding: 6px 9px; font-size: 0.78rem; }
+
+  /* ---------- Layout ---------- */
+  .board {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+    gap: 16px;
+    align-items: start;
+  }
+  @media (max-width: 880px) {
+    .board { grid-template-columns: 1fr; }
+  }
+  .panel {
+    background: var(--paper-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px;
+  }
+  .panel-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  .panel-title h2 { font-size: 1rem; font-weight: 600; }
+  .panel-title .hint { font-size: 0.76rem; color: var(--ink-faint); }
+
+  /* ---------- Aufgabe ---------- */
+  .task-box {
+    background: var(--paper-3);
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    display: flex;
+    gap: 6px;
+  }
+  .task-box b { color: var(--accent-strong); }
+
+  /* ---------- Editor ---------- */
+  .editor-wrap {
+    position: relative;
+    background: var(--code-bg);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--code-bg-2);
+  }
+  .editor-inner { display: flex; position: relative; }
+  .editor-gutter {
+    flex: none;
+    padding: 12px 8px;
+    text-align: right;
+    color: var(--code-ink-soft);
+    font-size: 0.82rem;
+    line-height: 1.6;
+    user-select: none;
+    white-space: pre;
+    background: var(--code-bg-2);
+  }
+  .editor-highlight {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1.6em;
+    background: rgba(224, 169, 74, 0.16);
+    border-top: 1px solid rgba(224, 169, 74, 0.5);
+    border-bottom: 1px solid rgba(224, 169, 74, 0.5);
+    pointer-events: none;
+    display: none;
+  }
+  .editor-highlight.error { background: rgba(226, 131, 106, 0.2); border-color: rgba(226, 131, 106, 0.65); }
+  textarea.editor-textarea {
+    flex: 1;
+    resize: none;
+    border: none;
+    background: transparent;
+    color: var(--code-ink);
+    font-size: 0.82rem;
+    line-height: 1.6;
+    padding: 12px 14px;
+    min-height: 340px;
+    white-space: pre;
+    overflow: auto;
+  }
+  textarea.editor-textarea:disabled { color: var(--code-ink); opacity: 0.92; }
+  textarea.editor-textarea:focus { outline: none; }
+
+  .console-box {
+    margin-top: 10px;
+    background: var(--code-bg);
+    border: 1px solid var(--code-bg-2);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 0.8rem;
+    line-height: 1.55;
+    color: var(--code-ink);
+    min-height: 4.6em;
+    max-height: 9em;
+    overflow-y: auto;
+    white-space: pre-wrap;
+  }
+  .console-box:empty::before,
+  .console-box .placeholder { color: var(--code-ink-soft); font-style: italic; }
+
+  .error-banner {
+    margin-top: 10px;
+    background: var(--danger-soft);
+    border: 1px solid var(--danger);
+    color: var(--danger);
+    border-radius: 8px;
+    padding: 9px 12px;
+    font-size: 0.82rem;
+    display: none;
+    align-items: flex-start;
+    gap: 8px;
+    cursor: pointer;
+  }
+  .error-banner b { font-weight: 700; }
+
+  /* ---------- Run controls ---------- */
+  .runbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  .runbar .spacer { flex: 1; }
+  .scrub-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  input[type="range"] { accent-color: var(--accent); flex: 1; }
+  .frame-label {
+    font-size: 0.76rem;
+    color: var(--ink-soft);
+    white-space: nowrap;
+    min-width: 12ch;
+    text-align: right;
+  }
+  .speed-row { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; color: var(--ink-soft); }
+  .speed-row input[type="range"] { width: 90px; }
+
+  /* ---------- Territory ---------- */
+  .stage-wrap { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .stage-canvas-holder {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    background: var(--paper-3);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px;
+    overflow: auto;
+  }
+  canvas#stage { display: block; border-radius: 4px; cursor: default; }
+  canvas#stage.editing { cursor: crosshair; }
+
+  .stat-row { display: flex; gap: 16px; font-size: 0.8rem; color: var(--ink-soft); flex-wrap: wrap; }
+  .stat-row b { color: var(--ink); font-family: "JetBrains Mono", monospace; font-weight: 600; }
+
+  .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.74rem; color: var(--ink-soft); }
+  .legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .swatch { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+
+  .mode-toggle { display: flex; gap: 6px; margin-bottom: 12px; }
+  .mode-toggle .btn { flex: 1; justify-content: center; }
+  .mode-toggle .btn.active { background: var(--accent); color: var(--accent-ink); border-color: var(--accent-strong); font-weight: 600; }
+
+  .edit-toolbar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .tool-btn { position: relative; }
+  .tool-btn.active { background: var(--accent); color: var(--accent-ink); border-color: var(--accent-strong); }
+  .size-row { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--ink-soft); margin: 10px 0; flex-wrap: wrap; }
+  .size-row input[type="number"] {
+    width: 54px; background: var(--paper); border: 1px solid var(--line); border-radius: 6px;
+    color: var(--ink); padding: 5px 6px; font-size: 0.82rem;
+  }
+  .edit-file-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+
+  /* ---------- Help modal ---------- */
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(20, 15, 8, 0.5);
+    display: none; align-items: center; justify-content: center; padding: 24px; z-index: 50;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: var(--paper); border: 1px solid var(--line); border-radius: 14px;
+    max-width: 640px; width: 100%; max-height: 84vh; overflow-y: auto;
+    padding: 22px 24px; box-shadow: var(--shadow);
+  }
+  .modal h2 { font-size: 1.2rem; margin-bottom: 4px; }
+  .modal h3 { font-size: 0.88rem; margin: 18px 0 8px; color: var(--accent-strong); }
+  .modal p { font-size: 0.85rem; line-height: 1.6; color: var(--ink-soft); margin: 0 0 8px; }
+  .cmd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+  .cmd { background: var(--paper-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+  .cmd code { font-size: 0.82rem; color: var(--accent-strong); font-weight: 600; }
+  .cmd p { margin: 3px 0 0; font-size: 0.78rem; }
+  .modal-close-row { display: flex; justify-content: flex-end; margin-top: 18px; }
+
+  footer.app-footer {
+    text-align: center; font-size: 0.75rem; color: var(--ink-faint); padding-top: 8px;
+  }
+  footer.app-footer a { color: var(--ink-soft); }
+
+  .visually-hidden {
+    position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; animation: none !important; }
+  }
+</style>
+
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <svg viewBox="0 0 48 48" aria-hidden="true">
+        <circle cx="24" cy="26" r="16" fill="var(--accent)"></circle>
+        <circle cx="13" cy="14" r="6" fill="var(--accent)"></circle>
+        <circle cx="35" cy="14" r="6" fill="var(--accent)"></circle>
+        <circle cx="13" cy="14" r="2.6" fill="var(--paper-2)"></circle>
+        <circle cx="35" cy="14" r="2.6" fill="var(--paper-2)"></circle>
+        <circle cx="17.5" cy="24" r="2.2" fill="var(--ink)"></circle>
+        <circle cx="30.5" cy="24" r="2.2" fill="var(--ink)"></circle>
+        <ellipse cx="24" cy="31" rx="4.5" ry="3" fill="var(--paper-2)"></ellipse>
+        <circle cx="24" cy="29.5" r="1.6" fill="var(--ink)"></circle>
+      </svg>
+      <div class="brand-text">
+        <h1>Hamsterbau</h1>
+        <p>Python im Browser &middot; Hamster-Modell</p>
+      </div>
+    </div>
+    <div class="topbar-controls">
+      <select id="examplePicker" class="example-picker" aria-label="Beispiel-Territorium laden"></select>
+      <button class="btn btn-ghost btn-sm" id="btnHelp" type="button">Hilfe</button>
+    </div>
+  </header>
+
+  <div class="board">
+    <!-- ===== Linke Spalte: Code ===== -->
+    <section class="panel" id="codePanel">
+      <div class="panel-title">
+        <h2>Programm</h2>
+        <div class="topbar-controls">
+          <button class="btn btn-sm" id="btnLoadProgram" type="button">Öffnen…</button>
+          <button class="btn btn-sm" id="btnSaveProgram" type="button">Speichern</button>
+          <input type="file" id="fileProgramInput" accept=".py,.txt" class="visually-hidden">
+        </div>
+      </div>
+
+      <div id="taskBox" class="task-box" style="display:none;">
+        <b>Aufgabe:</b> <span id="taskText"></span>
+      </div>
+
+      <div class="editor-wrap">
+        <div class="editor-inner">
+          <div class="editor-gutter" id="editorGutter">1</div>
+          <div style="position:relative; flex:1;">
+            <div class="editor-highlight" id="editorHighlight"></div>
+            <textarea id="editorTextarea" class="editor-textarea" spellcheck="false" wrap="off"
+              aria-label="Python-Programm für den Hamster"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="error-banner" id="errorBanner" role="alert"></div>
+
+      <div class="runbar">
+        <button class="btn btn-primary" id="btnRun" type="button">▶ Start</button>
+        <button class="btn" id="btnEditBack" type="button" style="display:none;">✎ Zurück zum Bearbeiten</button>
+        <div class="spacer"></div>
+        <div class="speed-row">
+          <label for="speedSlider">Tempo</label>
+          <input type="range" id="speedSlider" min="1" max="20" value="6">
+        </div>
+      </div>
+
+      <div class="scrub-row" id="scrubRow" style="display:none;">
+        <button class="btn btn-icon btn-sm" id="btnStepBack" type="button" title="Ein Schritt zurück">⏮</button>
+        <button class="btn btn-icon btn-sm" id="btnPlayPause" type="button" title="Abspielen / Pause">▶</button>
+        <button class="btn btn-icon btn-sm" id="btnStepFwd" type="button" title="Ein Schritt vor">⏭</button>
+        <input type="range" id="frameSlider" min="0" max="0" value="0">
+        <span class="frame-label" id="frameLabel">Schritt 0 / 0</span>
+      </div>
+
+      <div class="console-box" id="consoleBox"><span class="placeholder">Ausgaben von print() erscheinen hier…</span></div>
+    </section>
+
+    <!-- ===== Rechte Spalte: Territorium ===== -->
+    <section class="panel" id="stagePanel">
+      <div class="mode-toggle">
+        <button class="btn active" id="btnModeRun" type="button">🐹 Hamster</button>
+        <button class="btn" id="btnModeEdit" type="button">🛠 Territorium bauen</button>
+      </div>
+
+      <!-- Edit-Werkzeugleiste -->
+      <div id="editControls" style="display:none;">
+        <div class="edit-toolbar">
+          <button class="btn tool-btn btn-sm active" id="toolWall" type="button" data-tool="wall">▦ Wand</button>
+          <button class="btn tool-btn btn-sm" id="toolGrain" type="button" data-tool="grain">● Korn +1</button>
+          <button class="btn tool-btn btn-sm" id="toolHamster" type="button" data-tool="hamster">🐹 Hamster</button>
+          <button class="btn tool-btn btn-sm" id="toolErase" type="button" data-tool="erase">✕ Radieren</button>
+        </div>
+        <div class="size-row">
+          <label for="rowsInput">Zeilen</label>
+          <input type="number" id="rowsInput" min="3" max="24" value="8">
+          <label for="colsInput">Spalten</label>
+          <input type="number" id="colsInput" min="3" max="28" value="10">
+          <button class="btn btn-sm" id="btnApplySize" type="button">Größe anwenden</button>
+          <button class="btn btn-sm" id="btnClearGrid" type="button">Neu (leer)</button>
+        </div>
+        <div class="edit-file-row">
+          <button class="btn btn-sm" id="btnSaveTerritory" type="button">Territorium speichern</button>
+          <button class="btn btn-sm" id="btnLoadTerritory" type="button">Territorium laden…</button>
+          <input type="file" id="fileTerritoryInput" accept=".json" class="visually-hidden">
+          <button class="btn btn-primary btn-sm" id="btnDoneEdit" type="button" style="margin-left:auto;">Fertig ✓</button>
+        </div>
+      </div>
+
+      <div class="stage-wrap">
+        <div class="stage-canvas-holder">
+          <canvas id="stage" width="600" height="480"></canvas>
+        </div>
+        <div class="stat-row">
+          <span>Blickrichtung: <b id="statDir">Osten</b></span>
+          <span>Körner im Maul: <b id="statGrain">0</b></span>
+          <span>Feld: <b id="statPos">–</b></span>
+        </div>
+        <div class="legend">
+          <span><span class="swatch" style="background:var(--wall)"></span>Wand</span>
+          <span><span class="swatch" style="background:var(--grain)"></span>Korn (Anzahl)</span>
+          <span><span class="swatch" style="background:var(--accent)"></span>Hamster</span>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <footer class="app-footer">Ein Hamster-Modell-Port für den Informatikunterricht &middot; eigenes Python-Subset, läuft vollständig im Browser</footer>
+</div>
+
+<!-- ===== Hilfe-Modal ===== -->
+<div class="modal-backdrop" id="helpBackdrop">
+  <div class="modal">
+    <h2>Hamsterbau &ndash; Kurzreferenz</h2>
+    <p>Ein schlanker Python-Interpreter im Browser, gebaut für das Hamster-Modell. Es steht ein bewusst kleiner Sprachumfang zur Verfügung &ndash; das reicht für alle Hamster-Aufgaben völlig aus.</p>
+
+    <h3>Hamster-Befehle (Original)</h3>
+    <div class="cmd-grid">
+      <div class="cmd"><code>vor()</code><p>Ein Feld vorwärts gehen.</p></div>
+      <div class="cmd"><code>linksUm()</code><p>90&deg; nach links drehen.</p></div>
+      <div class="cmd"><code>nimm()</code><p>Ein Korn aufnehmen.</p></div>
+      <div class="cmd"><code>gib()</code><p>Ein Korn ablegen.</p></div>
+      <div class="cmd"><code>vornFrei()</code><p>True, wenn vorne frei ist.</p></div>
+      <div class="cmd"><code>kornDa()</code><p>True, wenn hier Korn liegt.</p></div>
+      <div class="cmd"><code>maulLeer()</code><p>True, wenn das Maul leer ist.</p></div>
+    </div>
+
+    <h3>Zusatzbefehle (praktisch, nicht im Original)</h3>
+    <div class="cmd-grid">
+      <div class="cmd"><code>rechtsUm()</code><p>90&deg; nach rechts drehen.</p></div>
+      <div class="cmd"><code>kehrt()</code><p>Um 180&deg; drehen.</p></div>
+    </div>
+
+    <h3>Unterstützte Sprachelemente</h3>
+    <p>Variablen &amp; Zuweisung (<code>=  +=  -=  *=  /=</code>), <code>if / elif / else</code>, <code>while</code>, <code>for x in range(...)</code>, <code>def name(...): / return</code>, <code>break</code>, <code>continue</code>, <code>pass</code>, <code>print(...)</code>, Vergleiche (<code>== != &lt; &gt; &lt;= &gt;=</code>), <code>and / or / not</code>, Rechenoperatoren (<code>+ - * / // % **</code>), Kommentare mit <code>#</code>, Zahlen, Text in Anführungszeichen, <code>True/False/None</code>.</p>
+
+    <h3>Bewusst nicht enthalten</h3>
+    <p>Listen, Dictionaries, Klassen, Imports, f-Strings, Slicing. Für den Hamster reicht das eingebaute Sprach-Subset völlig &ndash; das hält den Fokus auf Kontrollstrukturen statt auf Python-Vollständigkeit.</p>
+
+    <h3>Bedienung</h3>
+    <p>Territorium wählen oder unter &bdquo;Territorium bauen&ldquo; selbst gestalten, Programm links eintippen, auf &bdquo;Start&ldquo; drücken. Danach lässt sich der Ablauf Schritt für Schritt vor- und zurückspulen oder automatisch abspielen.</p>
+
+    <div class="modal-close-row"><button class="btn btn-primary" id="btnHelpClose" type="button">Schließen</button></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* =========================================================================
+   * 1) MINI-PYTHON-INTERPRETER (Subset, tree-walking, mit Frame-Aufzeichnung)
+   * ======================================================================= */
+  class PyError extends Error {
+    constructor(message, line) { super(message); this.pyMessage = message; this.line = line; }
+  }
+  class HamsterError extends PyError {}
+  class BreakSignal {}
+  class ContinueSignal {}
+  class ReturnSignal { constructor(value) { this.value = value; } }
+
+  const KEYWORDS = new Set(['if','elif','else','while','for','in','def','return','break','continue','pass','and','or','not','True','False','None']);
+
+  function tokenize(source) {
+    const tokens = [];
+    const lines = source.replace(/\r\n/g, '\n').replace(/\t/g, '    ').split('\n');
+    const indentStack = [0];
+    let parenDepth = 0;
+    for (let lineNo = 0; lineNo < lines.length; lineNo++) {
+      let line = stripComment(lines[lineNo]);
+      if (parenDepth === 0) {
+        const trimmed = line.trim();
+        if (trimmed === '') continue;
+        const indent = line.length - line.replace(/^ */, '').length;
+        if (indent > indentStack[indentStack.length - 1]) { indentStack.push(indent); tokens.push({ type: 'INDENT', line: lineNo + 1 }); }
+        while (indent < indentStack[indentStack.length - 1]) { indentStack.pop(); tokens.push({ type: 'DEDENT', line: lineNo + 1 }); }
+        if (indent !== indentStack[indentStack.length - 1]) throw new PyError(`Zeile ${lineNo + 1}: uneinheitliche Einrückung`, lineNo + 1);
+      }
+      tokenizeLine(line, lineNo + 1, tokens, (d) => (parenDepth += d));
+      if (parenDepth === 0) {
+        const last = tokens[tokens.length - 1];
+        if (last && last.type !== 'NEWLINE' && last.type !== 'INDENT' && last.type !== 'DEDENT') tokens.push({ type: 'NEWLINE', line: lineNo + 1 });
+      }
+    }
+    while (indentStack.length > 1) { indentStack.pop(); tokens.push({ type: 'DEDENT', line: lines.length }); }
+    tokens.push({ type: 'EOF', line: lines.length });
+    return tokens;
+  }
+
+  function stripComment(line) {
+    let inStr = null;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (inStr) { if (c === '\\') { i++; continue; } if (c === inStr) inStr = null; }
+      else if (c === '"' || c === "'") inStr = c;
+      else if (c === '#') return line.slice(0, i);
+    }
+    return line;
+  }
+
+  const OPS3 = ['**='];
+  const OPS2 = ['==','!=','<=','>=','//','**','+=','-=','*=','/='];
+  const OPS1 = ['+','-','*','/','%','(',')',',',':','=','<','>'];
+
+  function tokenizeLine(line, lineNo, tokens, addParen) {
+    let i = 0; const n = line.length;
+    while (i < n) {
+      const c = line[i];
+      if (c === ' ') { i++; continue; }
+      if (c === '"' || c === "'") {
+        const quote = c; let j = i + 1; let s = '';
+        while (j < n && line[j] !== quote) {
+          if (line[j] === '\\' && j + 1 < n) {
+            const nc = line[j + 1];
+            const map = { n: '\n', t: '\t', '\\': '\\', "'": "'", '"': '"' };
+            s += map[nc] !== undefined ? map[nc] : nc; j += 2;
+          } else { s += line[j]; j++; }
+        }
+        tokens.push({ type: 'STRING', value: s, line: lineNo }); i = j + 1; continue;
+      }
+      if (/[0-9]/.test(c) || (c === '.' && /[0-9]/.test(line[i + 1] || ''))) {
+        let j = i, isFloat = false;
+        while (j < n && /[0-9]/.test(line[j])) j++;
+        if (line[j] === '.') { isFloat = true; j++; while (j < n && /[0-9]/.test(line[j])) j++; }
+        const text = line.slice(i, j);
+        tokens.push({ type: 'NUMBER', value: isFloat ? parseFloat(text) : parseInt(text, 10), line: lineNo });
+        i = j; continue;
+      }
+      if (/[A-Za-z_]/.test(c)) {
+        let j = i; while (j < n && /[A-Za-z0-9_]/.test(line[j])) j++;
+        const word = line.slice(i, j);
+        if (KEYWORDS.has(word)) tokens.push({ type: word.toUpperCase(), line: lineNo });
+        else tokens.push({ type: 'NAME', value: word, line: lineNo });
+        i = j; continue;
+      }
+      const three = line.slice(i, i + 3);
+      if (OPS3.includes(three)) { tokens.push({ type: three, line: lineNo }); i += 3; continue; }
+      const two = line.slice(i, i + 2);
+      if (OPS2.includes(two)) { tokens.push({ type: two, line: lineNo }); i += 2; continue; }
+      if (OPS1.includes(c)) {
+        if (c === '(') addParen(1);
+        if (c === ')') addParen(-1);
+        tokens.push({ type: c, line: lineNo }); i++; continue;
+      }
+      throw new PyError(`Zeile ${lineNo}: unerwartetes Zeichen '${c}'`, lineNo);
+    }
+  }
+
+  class Parser {
+    constructor(tokens) { this.toks = tokens; this.pos = 0; }
+    peek(o) { return this.toks[this.pos + (o || 0)]; }
+    at(type) { return this.peek().type === type; }
+    advance() { return this.toks[this.pos++]; }
+    expect(type) { if (!this.at(type)) { const t = this.peek(); throw new PyError(`Zeile ${t.line}: erwartet '${type}', gefunden '${t.type}'`, t.line); } return this.advance(); }
+    skipNewlines() { while (this.at('NEWLINE')) this.advance(); }
+    parseProgram() { const stmts = []; this.skipNewlines(); while (!this.at('EOF')) { stmts.push(this.parseStatement()); this.skipNewlines(); } return { type: 'Program', body: stmts }; }
+    parseBlock() {
+      this.expect(':'); this.expect('NEWLINE'); this.expect('INDENT');
+      const stmts = []; this.skipNewlines();
+      while (!this.at('DEDENT')) { stmts.push(this.parseStatement()); this.skipNewlines(); }
+      this.expect('DEDENT'); return stmts;
+    }
+    parseStatement() {
+      const t = this.peek();
+      switch (t.type) {
+        case 'IF': return this.parseIf();
+        case 'WHILE': return this.parseWhile();
+        case 'FOR': return this.parseFor();
+        case 'DEF': return this.parseDef();
+        case 'RETURN': { this.advance(); let arg = null; if (!this.at('NEWLINE')) arg = this.parseExpr(); return { type: 'Return', argument: arg, line: t.line }; }
+        case 'BREAK': this.advance(); return { type: 'Break', line: t.line };
+        case 'CONTINUE': this.advance(); return { type: 'Continue', line: t.line };
+        case 'PASS': this.advance(); return { type: 'Pass', line: t.line };
+        default: return this.parseSimpleStatement();
+      }
+    }
+    parseIf() {
+      const line = this.expect('IF').line;
+      const test = this.parseExpr();
+      const consequent = this.parseBlock();
+      let alternate = null;
+      this.skipNewlines();
+      if (this.at('ELIF')) { alternate = [this.parseIf()]; return { type: 'If', test, consequent, alternate, line }; }
+      else if (this.at('ELSE')) { this.advance(); alternate = this.parseBlock(); }
+      return { type: 'If', test, consequent, alternate, line };
+    }
+    parseWhile() { const line = this.expect('WHILE').line; const test = this.parseExpr(); const body = this.parseBlock(); return { type: 'While', test, body, line }; }
+    parseFor() {
+      const line = this.expect('FOR').line;
+      const varName = this.expect('NAME').value;
+      this.expect('IN');
+      const iterCall = this.parseExpr();
+      const body = this.parseBlock();
+      return { type: 'For', varName, iter: iterCall, body, line };
+    }
+    parseDef() {
+      const line = this.expect('DEF').line;
+      const name = this.expect('NAME').value;
+      this.expect('(');
+      const params = [];
+      while (!this.at(')')) { params.push(this.expect('NAME').value); if (this.at(',')) this.advance(); else break; }
+      this.expect(')');
+      const body = this.parseBlock();
+      return { type: 'FunctionDef', name, params, body, line };
+    }
+    parseSimpleStatement() {
+      const start = this.peek();
+      const expr = this.parseExpr();
+      if (['=','+=','-=','*=','/='].includes(this.peek().type)) {
+        const op = this.advance().type;
+        const value = this.parseExpr();
+        if (expr.type !== 'Name') throw new PyError(`Zeile ${start.line}: ungültiges Ziel für Zuweisung`, start.line);
+        return { type: 'Assign', name: expr.name, op, value, line: start.line };
+      }
+      return { type: 'ExprStatement', expr, line: start.line };
+    }
+    parseExpr() { return this.parseOr(); }
+    parseOr() { let left = this.parseAnd(); while (this.at('OR')) { this.advance(); const right = this.parseAnd(); left = { type: 'BoolOp', op: 'or', left, right }; } return left; }
+    parseAnd() { let left = this.parseNot(); while (this.at('AND')) { this.advance(); const right = this.parseNot(); left = { type: 'BoolOp', op: 'and', left, right }; } return left; }
+    parseNot() { if (this.at('NOT')) { const line = this.advance().line; const arg = this.parseNot(); return { type: 'UnaryOp', op: 'not', arg, line }; } return this.parseComparison(); }
+    parseComparison() {
+      let left = this.parseAdd();
+      const cmpOps = ['==','!=','<','>','<=','>='];
+      while (cmpOps.includes(this.peek().type)) { const op = this.advance().type; const right = this.parseAdd(); left = { type: 'Compare', op, left, right }; }
+      return left;
+    }
+    parseAdd() { let left = this.parseMul(); while (this.at('+') || this.at('-')) { const op = this.advance().type; const right = this.parseMul(); left = { type: 'BinOp', op, left, right }; } return left; }
+    parseMul() { let left = this.parseUnary(); while (this.at('*') || this.at('/') || this.at('//') || this.at('%')) { const op = this.advance().type; const right = this.parseUnary(); left = { type: 'BinOp', op, left, right }; } return left; }
+    parseUnary() { if (this.at('-') || this.at('+')) { const op = this.advance().type; const arg = this.parseUnary(); return { type: 'UnaryOp', op, arg }; } return this.parsePower(); }
+    parsePower() { const base = this.parseCall(); if (this.at('**')) { this.advance(); const exp = this.parseUnary(); return { type: 'BinOp', op: '**', left: base, right: exp }; } return base; }
+    parseCall() {
+      let node = this.parseAtom();
+      while (this.at('(')) {
+        const line = this.advance().line;
+        const args = [];
+        while (!this.at(')')) { args.push(this.parseExpr()); if (this.at(',')) this.advance(); else break; }
+        this.expect(')');
+        if (node.type !== 'Name') throw new PyError(`Zeile ${line}: Aufruf nur auf Namen möglich`, line);
+        node = { type: 'Call', callee: node.name, args, line };
+      }
+      return node;
+    }
+    parseAtom() {
+      const t = this.peek();
+      switch (t.type) {
+        case 'NUMBER': this.advance(); return { type: 'Num', value: t.value };
+        case 'STRING': this.advance(); return { type: 'Str', value: t.value };
+        case 'TRUE': this.advance(); return { type: 'Bool', value: true };
+        case 'FALSE': this.advance(); return { type: 'Bool', value: false };
+        case 'NONE': this.advance(); return { type: 'NoneLit' };
+        case 'NAME': this.advance(); return { type: 'Name', name: t.value, line: t.line };
+        case '(': { this.advance(); const e = this.parseExpr(); this.expect(')'); return e; }
+        default: throw new PyError(`Zeile ${t.line}: unerwartetes Token '${t.type}'`, t.line);
+      }
+    }
+  }
+
+  function parseProgram(source) { const tokens = tokenize(source); const parser = new Parser(tokens); return parser.parseProgram(); }
+
+  class Env {
+    constructor(parent) { this.vars = new Map(); this.parent = parent; }
+    get(name) { let e = this; while (e) { if (e.vars.has(name)) return e.vars.get(name); e = e.parent; } return undefined; }
+    has(name) { let e = this; while (e) { if (e.vars.has(name)) return true; e = e.parent; } return false; }
+    set(name, value) { let e = this; while (e) { if (e.vars.has(name)) { e.vars.set(name, value); return; } e = e.parent; } this.vars.set(name, value); }
+    declare(name, value) { this.vars.set(name, value); }
+  }
+  class PyFunction { constructor(node, closureEnv) { this.node = node; this.closureEnv = closureEnv; } }
+
+  const MAX_STEPS_DEFAULT = 200000;
+  const MAX_CALL_DEPTH = 300;
+  const MAX_MS = 4000;
+
+  class Interpreter {
+    constructor(hamster, opts) {
+      opts = opts || {};
+      this.hamster = hamster;
+      this.frames = [];
+      this.consoleText = '';
+      this.stepCount = 0;
+      this.callDepth = 0;
+      this.startTime = 0;
+      this.maxSteps = opts.maxSteps || MAX_STEPS_DEFAULT;
+    }
+    pushFrame(label, line, extra) {
+      this.frames.push({ label, line: line || null, console: this.consoleText, snapshot: this.hamster.snapshot(), error: (extra && extra.error) ? extra.error : null });
+    }
+    checkBudget(line) {
+      this.stepCount++;
+      if (this.stepCount > this.maxSteps) throw new PyError('Abbruch: zu viele Schritte ausgeführt (evtl. Endlosschleife?)', line);
+      if ((this.stepCount & 1023) === 0 && Date.now() - this.startTime > MAX_MS) throw new PyError('Abbruch: Zeitlimit überschritten (evtl. Endlosschleife?)', line);
+    }
+    run(ast) {
+      this.startTime = Date.now();
+      const globalEnv = new Env(null);
+      this.pushFrame('Start', null);
+      try { this.execBlock(ast.body, globalEnv); }
+      catch (e) {
+        if (e instanceof PyError) this.pushFrame('Fehler', e.line, { error: e.pyMessage });
+        else this.pushFrame('Fehler', null, { error: 'Interner Fehler: ' + e.message });
+        return { frames: this.frames, error: e.pyMessage || e.message };
+      }
+      return { frames: this.frames, error: null };
+    }
+    execBlock(stmts, env) { for (let i = 0; i < stmts.length; i++) this.execStmt(stmts[i], env); }
+    execStmt(node, env) {
+      this.checkBudget(node.line);
+      switch (node.type) {
+        case 'ExprStatement': this.evalExpr(node.expr, env); return;
+        case 'Assign': {
+          let value = this.evalExpr(node.value, env);
+          if (node.op !== '=') {
+            const cur = env.get(node.name);
+            if (cur === undefined) throw new PyError(`Zeile ${node.line}: '${node.name}' ist nicht definiert`, node.line);
+            value = applyBinOp(node.op.slice(0, -1), cur, value, node.line);
+          }
+          env.set(node.name, value); return;
+        }
+        case 'If':
+          if (truthy(this.evalExpr(node.test, env))) this.execBlock(node.consequent, env);
+          else if (node.alternate) this.execBlock(node.alternate, env);
+          return;
+        case 'While': {
+          while (truthy(this.evalExpr(node.test, env))) {
+            try { this.execBlock(node.body, env); }
+            catch (e) { if (e instanceof BreakSignal) break; if (e instanceof ContinueSignal) { this.checkBudget(node.line); continue; } throw e; }
+            this.checkBudget(node.line);
+          }
+          return;
+        }
+        case 'For': {
+          const range = this.evalRangeCall(node.iter, env);
+          for (let i = 0; i < range.length; i++) {
+            env.set(node.varName, range[i]);
+            try { this.execBlock(node.body, env); }
+            catch (e) { if (e instanceof BreakSignal) break; if (e instanceof ContinueSignal) { this.checkBudget(node.line); continue; } throw e; }
+            this.checkBudget(node.line);
+          }
+          return;
+        }
+        case 'FunctionDef': env.declare(node.name, new PyFunction(node, env)); return;
+        case 'Return': throw new ReturnSignal(node.argument ? this.evalExpr(node.argument, env) : null);
+        case 'Break': throw new BreakSignal();
+        case 'Continue': throw new ContinueSignal();
+        case 'Pass': return;
+        default: throw new PyError(`Zeile ${node.line}: unbekannte Anweisung`, node.line);
+      }
+    }
+    evalRangeCall(node, env) {
+      if (node.type !== 'Call' || node.callee !== 'range') throw new PyError(`Zeile ${node.line}: 'for' erwartet 'range(...)'`, node.line);
+      const args = node.args.map((a) => this.evalExpr(a, env));
+      let start = 0, stop, step = 1;
+      if (args.length === 1) stop = args[0];
+      else if (args.length === 2) { start = args[0]; stop = args[1]; }
+      else if (args.length >= 3) { start = args[0]; stop = args[1]; step = args[2]; }
+      else throw new PyError(`Zeile ${node.line}: range() braucht 1-3 Argumente`, node.line);
+      const out = [];
+      if (step === 0) throw new PyError(`Zeile ${node.line}: range()-Schritt darf nicht 0 sein`, node.line);
+      if (step > 0) for (let v = start; v < stop; v += step) out.push(v);
+      else for (let v = start; v > stop; v += step) out.push(v);
+      return out;
+    }
+    evalExpr(node, env) {
+      switch (node.type) {
+        case 'Num': return node.value;
+        case 'Str': return node.value;
+        case 'Bool': return node.value;
+        case 'NoneLit': return null;
+        case 'Name': if (!env.has(node.name)) throw new PyError(`Zeile ${node.line}: Name '${node.name}' ist nicht definiert`, node.line); return env.get(node.name);
+        case 'UnaryOp': {
+          const v = this.evalExpr(node.arg, env);
+          if (node.op === 'not') return !truthy(v);
+          if (node.op === '-') return -v;
+          if (node.op === '+') return +v;
+          break;
+        }
+        case 'BoolOp': {
+          const l = this.evalExpr(node.left, env);
+          if (node.op === 'and') return truthy(l) ? this.evalExpr(node.right, env) : l;
+          return truthy(l) ? l : this.evalExpr(node.right, env);
+        }
+        case 'Compare': {
+          const l = this.evalExpr(node.left, env);
+          const r = this.evalExpr(node.right, env);
+          switch (node.op) {
+            case '==': return l === r;
+            case '!=': return l !== r;
+            case '<': return l < r;
+            case '>': return l > r;
+            case '<=': return l <= r;
+            case '>=': return l >= r;
+          }
+          break;
+        }
+        case 'BinOp': { const l = this.evalExpr(node.left, env); const r = this.evalExpr(node.right, env); return applyBinOp(node.op, l, r, node.line); }
+        case 'Call': return this.evalCall(node, env);
+        default: throw new PyError('Unbekannter Ausdruck', node.line);
+      }
+    }
+    evalCall(node, env) {
+      const name = node.callee;
+      const argVals = node.args.map((a) => this.evalExpr(a, env));
+      if (this.hamster.commands[name]) {
+        const result = this.hamster.commands[name].apply(null, argVals);
+        this.pushFrame(name + '(' + argVals.join(', ') + ')', node.line);
+        return result;
+      }
+      if (name === 'print') { this.consoleText += argVals.map(pyStr).join(' ') + '\n'; this.pushFrame('print(' + argVals.map(pyStr).join(', ') + ')', node.line); return null; }
+      if (name === 'range') throw new PyError(`Zeile ${node.line}: range() kann nur in 'for ... in range(...)' verwendet werden`, node.line);
+      if (name === 'len') { const v = argVals[0]; if (typeof v === 'string') return v.length; throw new PyError(`Zeile ${node.line}: len() wird hier nicht unterstützt`, node.line); }
+      if (name === 'abs') return Math.abs(argVals[0]);
+      if (name === 'int') return Math.trunc(Number(argVals[0]));
+      if (!env.has(name)) throw new PyError(`Zeile ${node.line}: Funktion oder Befehl '${name}' ist nicht definiert`, node.line);
+      const fn = env.get(name);
+      if (!(fn instanceof PyFunction)) throw new PyError(`Zeile ${node.line}: '${name}' ist keine Funktion`, node.line);
+      if (fn.node.params.length !== argVals.length) throw new PyError(`Zeile ${node.line}: '${name}' erwartet ${fn.node.params.length} Argument(e), bekam ${argVals.length}`, node.line);
+      this.callDepth++;
+      if (this.callDepth > MAX_CALL_DEPTH) { this.callDepth--; throw new PyError(`Zeile ${node.line}: zu tiefe Rekursion in '${name}'`, node.line); }
+      const callEnv = new Env(fn.closureEnv);
+      fn.node.params.forEach((p, i) => callEnv.declare(p, argVals[i]));
+      let ret = null;
+      try { this.execBlock(fn.node.body, callEnv); }
+      catch (e) { if (e instanceof ReturnSignal) ret = e.value; else { this.callDepth--; throw e; } }
+      this.callDepth--;
+      return ret;
+    }
+  }
+
+  function truthy(v) { if (v === null || v === undefined) return false; if (typeof v === 'number') return v !== 0; if (typeof v === 'string') return v.length > 0; return !!v; }
+  function pyStr(v) { if (v === null || v === undefined) return 'None'; if (v === true) return 'True'; if (v === false) return 'False'; return String(v); }
+  function applyBinOp(op, l, r, line) {
+    switch (op) {
+      case '+': if (typeof l === 'string' || typeof r === 'string') return pyStr(l) + pyStr(r); return l + r;
+      case '-': return l - r;
+      case '*': return l * r;
+      case '/': if (r === 0) throw new PyError(`Zeile ${line}: Division durch 0`, line); return l / r;
+      case '//': if (r === 0) throw new PyError(`Zeile ${line}: Division durch 0`, line); return Math.floor(l / r);
+      case '%': if (r === 0) throw new PyError(`Zeile ${line}: Division durch 0`, line); return ((l % r) + r) % r;
+      case '**': return Math.pow(l, r);
+      default: throw new PyError(`Zeile ${line}: unbekannter Operator '${op}'`, line);
+    }
+  }
+
+  /* =========================================================================
+   * 2) HAMSTER-TERRITORIUM
+   * ======================================================================= */
+  const DIR_NAMES = ['Norden', 'Osten', 'Süden', 'Westen'];
+  const DR = [-1, 0, 1, 0];
+  const DC = [0, 1, 0, -1];
+
+  function cloneGrid(grid) { return grid.map((row) => row.map((cell) => ({ wall: cell.wall, grain: cell.grain }))); }
+
+  class Territory {
+    constructor(def) {
+      this.rows = def.rows;
+      this.cols = def.cols;
+      this.grid = def.grid.map((row) => row.map((cell) => ({ wall: !!cell.wall, grain: cell.grain | 0 })));
+      this.hRow = def.hamster.row;
+      this.hCol = def.hamster.col;
+      this.hDir = def.hamster.dir;
+      this.hGrain = def.hamster.grain || 0;
+      const self = this;
+      this.commands = {
+        vor: function () { return self.vor(); },
+        linksUm: function () { return self.linksUm(); },
+        nimm: function () { return self.nimm(); },
+        gib: function () { return self.gib(); },
+        vornFrei: function () { return self.vornFrei(); },
+        kornDa: function () { return self.kornDa(); },
+        maulLeer: function () { return self.maulLeer(); },
+        rechtsUm: function () { self.linksUm(); self.linksUm(); self.linksUm(); },
+        kehrt: function () { self.linksUm(); self.linksUm(); },
+      };
+    }
+    inBounds(r, c) { return r >= 0 && r < this.rows && c >= 0 && c < this.cols; }
+    vornFrei() { const nr = this.hRow + DR[this.hDir], nc = this.hCol + DC[this.hDir]; if (!this.inBounds(nr, nc)) return false; return !this.grid[nr][nc].wall; }
+    vor() { if (!this.vornFrei()) throw new HamsterError('Der Hamster ist gegen eine Wand oder den Rand des Territoriums gelaufen!'); this.hRow += DR[this.hDir]; this.hCol += DC[this.hDir]; }
+    linksUm() { this.hDir = (this.hDir + 3) % 4; }
+    kornDa() { return this.grid[this.hRow][this.hCol].grain > 0; }
+    maulLeer() { return this.hGrain === 0; }
+    nimm() { if (!this.kornDa()) throw new HamsterError('Hier liegt kein Korn zum Aufnehmen!'); this.grid[this.hRow][this.hCol].grain -= 1; this.hGrain += 1; }
+    gib() { if (this.maulLeer()) throw new HamsterError('Der Hamster hat kein Korn im Maul zum Ablegen!'); this.grid[this.hRow][this.hCol].grain += 1; this.hGrain -= 1; }
+    snapshot() { return { rows: this.rows, cols: this.cols, grid: cloneGrid(this.grid), hRow: this.hRow, hCol: this.hCol, hDir: this.hDir, hGrain: this.hGrain }; }
+  }
+
+  /* =========================================================================
+   * 3) BEISPIEL-TERRITORIEN
+   * ======================================================================= */
+  function T(rows, hamster, name) {
+    const grid = rows.map((row) => row.split('').map((ch) => ({ wall: ch === '#', grain: /[1-9]/.test(ch) ? parseInt(ch, 10) : 0 })));
+    return { name: name, rows: grid.length, cols: grid[0].length, grid: grid, hamster: hamster };
+  }
+
+  const EXAMPLES = [
+    {
+      id: 'kornsuche', title: 'Kornsuche (Beispiel gelöst)',
+      aufgabe: 'Sammle alle Körner in der Reihe ein.',
+      territory: T(['##########', '#.1.2.1.3#', '##########'], { row: 1, col: 1, dir: 1, grain: 0 }, 'Kornsuche'),
+      code: [
+        '# Raeumt ein Feld leer, auch wenn mehrere Koerner liegen.',
+        'def feldLeeren():',
+        '    while kornDa():',
+        '        nimm()',
+        '',
+        'feldLeeren()',
+        'while vornFrei():',
+        '    vor()',
+        '    feldLeeren()',
+        '',
+        'print("Fertig! Maul leer:", maulLeer())',
+        '',
+      ].join('\n'),
+    },
+    {
+      id: 'wand', title: 'Bis zur Wand',
+      aufgabe: 'Lass den Hamster laufen, bis er vor einer Wand steht, und zaehle dabei die Schritte.',
+      territory: T(['############', '#..........#', '############'], { row: 1, col: 1, dir: 1, grain: 0 }, 'Bis zur Wand'),
+      code: ['# Zaehle die Schritte bis zur Wand.', 'schritte = 0', '', '# Dein Code hier...', '', 'print("Schritte:", schritte)', ''].join('\n'),
+    },
+    {
+      id: 'quadrat', title: 'Das Quadrat',
+      aufgabe: 'Der Hamster soll ein Quadrat mit Seitenlaenge 4 ablaufen (nutze eine Schleife!).',
+      territory: T(['###########', '#.........#', '#.........#', '#.........#', '#.........#', '#.........#', '#.........#', '###########'], { row: 3, col: 3, dir: 1, grain: 0 }, 'Das Quadrat'),
+      code: ['# Tipp: eine Seite = 4x vor(), dann einmal drehen.', '# Das Ganze viermal wiederholen -> for-Schleife!', '', 'for seite in range(4):', '    # ... dein Code ...', '    pass', ''].join('\n'),
+    },
+    {
+      id: 'slalom', title: 'Der Slalom',
+      aufgabe: 'Fahre um die Hindernisse herum, ohne gegen eine Wand zu laufen.',
+      territory: T(['##############', '#............#', '#.##.##.##.#.#', '#............#', '##############'], { row: 1, col: 1, dir: 1, grain: 0 }, 'Der Slalom'),
+      code: ['# Finde einen Weg um die Hindernisse.', 'while vornFrei():', '    vor()', ''].join('\n'),
+    },
+    {
+      id: 'leer', title: 'Leeres Territorium',
+      aufgabe: '',
+      territory: T(['############', '#..........#', '#..........#', '#..........#', '#..........#', '############'], { row: 1, col: 1, dir: 1, grain: 0 }, 'Leeres Territorium'),
+      code: '# Schreibe hier dein eigenes Hamster-Programm...\n',
+    },
+  ];
+
+  /* -------------------------------------------------------------------------
+   * Datei-Download (normaler Browser-Download, kein Artifact-Runtime noetig)
+   * ----------------------------------------------------------------------- */
+  function downloadFile(filename, content, mime) {
+    const blob = new Blob([content], { type: mime || 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  /* =========================================================================
+   * 4) APP-STATE & DOM
+   * ======================================================================= */
+  const $ = (id) => document.getElementById(id);
+  const els = {
+    examplePicker: $('examplePicker'), btnHelp: $('btnHelp'), helpBackdrop: $('helpBackdrop'), btnHelpClose: $('btnHelpClose'),
+    taskBox: $('taskBox'), taskText: $('taskText'),
+    editorGutter: $('editorGutter'), editorHighlight: $('editorHighlight'), editorTextarea: $('editorTextarea'),
+    errorBanner: $('errorBanner'),
+    btnRun: $('btnRun'), btnEditBack: $('btnEditBack'),
+    scrubRow: $('scrubRow'), btnStepBack: $('btnStepBack'), btnPlayPause: $('btnPlayPause'), btnStepFwd: $('btnStepFwd'),
+    frameSlider: $('frameSlider'), frameLabel: $('frameLabel'), speedSlider: $('speedSlider'),
+    consoleBox: $('consoleBox'),
+    btnLoadProgram: $('btnLoadProgram'), btnSaveProgram: $('btnSaveProgram'), fileProgramInput: $('fileProgramInput'),
+    btnModeRun: $('btnModeRun'), btnModeEdit: $('btnModeEdit'), editControls: $('editControls'),
+    toolWall: $('toolWall'), toolGrain: $('toolGrain'), toolHamster: $('toolHamster'), toolErase: $('toolErase'),
+    rowsInput: $('rowsInput'), colsInput: $('colsInput'), btnApplySize: $('btnApplySize'), btnClearGrid: $('btnClearGrid'),
+    btnSaveTerritory: $('btnSaveTerritory'), btnLoadTerritory: $('btnLoadTerritory'), fileTerritoryInput: $('fileTerritoryInput'),
+    btnDoneEdit: $('btnDoneEdit'),
+    canvas: $('stage'), statDir: $('statDir'), statGrain: $('statGrain'), statPos: $('statPos'),
+  };
+  const ctx = els.canvas.getContext('2d');
+
+  const state = {
+    territoryDef: null,   // aktives Territorium (fuer den Lauf)
+    editDef: null,        // Kopie im Editor-Modus
+    mode: 'run',          // 'run' | 'edit'
+    editTool: 'wall',
+    frames: null,
+    frameIndex: 0,
+    playing: false,
+    playTimer: null,
+    running: false,       // Programm laeuft gerade (Editor gesperrt)
+  };
+
+  /* ---------- Beispiel-Dropdown fuellen ---------- */
+  EXAMPLES.forEach((ex) => {
+    const opt = document.createElement('option');
+    opt.value = ex.id; opt.textContent = ex.title;
+    els.examplePicker.appendChild(opt);
+  });
+
+  function loadExample(id) {
+    const ex = EXAMPLES.find((e) => e.id === id) || EXAMPLES[0];
+    state.territoryDef = cloneDef(ex.territory);
+    setEditorText(ex.code);
+    if (ex.aufgabe) { els.taskBox.style.display = 'flex'; els.taskText.textContent = ex.aufgabe; }
+    else { els.taskBox.style.display = 'none'; }
+    exitRunState();
+    resetView();
+  }
+
+  function cloneDef(def) {
+    return {
+      name: def.name, rows: def.rows, cols: def.cols,
+      grid: def.grid.map((row) => row.map((c) => ({ wall: c.wall, grain: c.grain }))),
+      hamster: { row: def.hamster.row, col: def.hamster.col, dir: def.hamster.dir, grain: def.hamster.grain || 0 },
+    };
+  }
+
+  els.examplePicker.addEventListener('change', () => loadExample(els.examplePicker.value));
+
+  /* ---------- Editor: Gutter, Tab, Auto-Einrueckung ---------- */
+  function setEditorText(text) { els.editorTextarea.value = text; syncGutter(); }
+  function syncGutter() {
+    const n = els.editorTextarea.value.split('\n').length;
+    let out = '';
+    for (let i = 1; i <= n; i++) out += i + '\n';
+    els.editorGutter.textContent = out;
+  }
+  els.editorTextarea.addEventListener('input', syncGutter);
+  els.editorTextarea.addEventListener('scroll', () => {
+    els.editorGutter.scrollTop = els.editorTextarea.scrollTop;
+    positionHighlight();
+  });
+  els.editorTextarea.addEventListener('keydown', (e) => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const ta = els.editorTextarea;
+      const s = ta.selectionStart, en = ta.selectionEnd;
+      ta.value = ta.value.slice(0, s) + '    ' + ta.value.slice(en);
+      ta.selectionStart = ta.selectionEnd = s + 4;
+      syncGutter();
+    } else if (e.key === 'Enter') {
+      const ta = els.editorTextarea;
+      const s = ta.selectionStart;
+      const lineStart = ta.value.lastIndexOf('\n', s - 1) + 1;
+      const curLine = ta.value.slice(lineStart, s);
+      const indentMatch = curLine.match(/^ */);
+      let indent = indentMatch ? indentMatch[0] : '';
+      if (curLine.trim().endsWith(':')) indent += '    ';
+      e.preventDefault();
+      ta.value = ta.value.slice(0, s) + '\n' + indent + ta.value.slice(ta.selectionEnd);
+      ta.selectionStart = ta.selectionEnd = s + 1 + indent.length;
+      syncGutter();
+    }
+  });
+
+  function positionHighlight() {
+    const hl = els.editorHighlight;
+    if (state.frames && state.frames[state.frameIndex] && state.frames[state.frameIndex].line) {
+      const frame = state.frames[state.frameIndex];
+      const lineHeightPx = parseFloat(getComputedStyle(els.editorTextarea).lineHeight) || 22;
+      const top = (frame.line - 1) * lineHeightPx - els.editorTextarea.scrollTop + 12;
+      hl.style.display = 'block';
+      hl.style.top = top + 'px';
+      hl.style.height = lineHeightPx + 'px';
+      hl.classList.toggle('error', !!frame.error);
+    } else {
+      hl.style.display = 'none';
+    }
+  }
+
+  /* ---------- Ausfuehren ---------- */
+  els.btnRun.addEventListener('click', runProgram);
+
+  function runProgram() {
+    stopPlayback();
+    els.errorBanner.style.display = 'none';
+    let ast;
+    try {
+      ast = parseProgram(els.editorTextarea.value);
+    } catch (e) {
+      showSyntaxError(e);
+      return;
+    }
+    const territory = new Territory(state.territoryDef);
+    const interp = new Interpreter(territory);
+    const result = interp.run(ast);
+    state.frames = result.frames;
+    state.frameIndex = 0;
+    enterRunState();
+    renderFrame();
+    if (result.error) showRuntimeErrorHint();
+  }
+
+  function showSyntaxError(e) {
+    els.errorBanner.style.display = 'flex';
+    const line = (e && e.line) ? e.line : null;
+    els.errorBanner.innerHTML = '<span>⚠</span><span><b>Syntaxfehler' + (line ? ' (Zeile ' + line + ')' : '') + ':</b> ' + escapeHtml(e.pyMessage || e.message) + '</span>';
+  }
+  function showRuntimeErrorHint() {
+    els.errorBanner.style.display = 'flex';
+    els.errorBanner.onclick = () => { state.frameIndex = state.frames.length - 1; renderFrame(); };
+    const last = state.frames[state.frames.length - 1];
+    els.errorBanner.innerHTML = '<span>⚠</span><span><b>Laufzeitfehler' + (last.line ? ' (Zeile ' + last.line + ')' : '') + ':</b> ' + escapeHtml(last.error) + ' &mdash; zum Fehlerschritt springen</span>';
+  }
+  function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+  function enterRunState() {
+    state.running = true;
+    els.editorTextarea.disabled = true;
+    els.btnRun.style.display = 'none';
+    els.btnEditBack.style.display = 'inline-flex';
+    els.scrubRow.style.display = 'flex';
+    els.frameSlider.max = String(Math.max(0, state.frames.length - 1));
+  }
+  function exitRunState() {
+    stopPlayback();
+    state.running = false;
+    state.frames = null;
+    els.editorTextarea.disabled = false;
+    els.btnRun.style.display = 'inline-flex';
+    els.btnEditBack.style.display = 'none';
+    els.scrubRow.style.display = 'none';
+    els.errorBanner.style.display = 'none';
+    els.editorHighlight.style.display = 'none';
+    els.consoleBox.innerHTML = '<span class="placeholder">Ausgaben von print() erscheinen hier…</span>';
+    drawTerritory(new Territory(state.territoryDef).snapshot(), false);
+    updateStats(new Territory(state.territoryDef).snapshot());
+  }
+  els.btnEditBack.addEventListener('click', exitRunState);
+
+  /* ---------- Abspiel-Steuerung ---------- */
+  els.frameSlider.addEventListener('input', () => { state.frameIndex = parseInt(els.frameSlider.value, 10); renderFrame(); });
+  els.btnStepBack.addEventListener('click', () => { stepBy(-1); });
+  els.btnStepFwd.addEventListener('click', () => { stepBy(1); });
+  els.btnPlayPause.addEventListener('click', togglePlay);
+
+  function stepBy(delta) {
+    if (!state.frames) return;
+    stopPlayback();
+    state.frameIndex = Math.max(0, Math.min(state.frames.length - 1, state.frameIndex + delta));
+    renderFrame();
+  }
+  function togglePlay() {
+    if (!state.frames) return;
+    if (state.playing) { stopPlayback(); return; }
+    if (state.frameIndex >= state.frames.length - 1) state.frameIndex = 0;
+    state.playing = true;
+    els.btnPlayPause.textContent = '❚❚';
+    scheduleTick();
+  }
+  function scheduleTick() {
+    const stepsPerSec = parseInt(els.speedSlider.value, 10);
+    const delay = Math.max(30, 1000 / stepsPerSec);
+    state.playTimer = window.setTimeout(() => {
+      if (!state.playing) return;
+      if (state.frameIndex >= state.frames.length - 1) { stopPlayback(); return; }
+      state.frameIndex++;
+      renderFrame();
+      scheduleTick();
+    }, delay);
+  }
+  function stopPlayback() {
+    state.playing = false;
+    els.btnPlayPause.textContent = '▶';
+    if (state.playTimer) { clearTimeout(state.playTimer); state.playTimer = null; }
+  }
+
+  function renderFrame() {
+    if (!state.frames) return;
+    const frame = state.frames[state.frameIndex];
+    els.frameSlider.value = String(state.frameIndex);
+    els.frameLabel.textContent = 'Schritt ' + state.frameIndex + ' / ' + (state.frames.length - 1);
+    els.consoleBox.textContent = frame.console || '';
+    if (!frame.console) els.consoleBox.innerHTML = '<span class="placeholder">Ausgaben von print() erscheinen hier…</span>';
+    drawTerritory(frame.snapshot, false);
+    updateStats(frame.snapshot);
+    positionHighlight();
+  }
+
+  /* ---------- Programm speichern / laden ---------- */
+  els.btnSaveProgram.addEventListener('click', () => {
+    downloadFile('hamster-programm.py', els.editorTextarea.value, 'text/x-python');
+  });
+  els.btnLoadProgram.addEventListener('click', () => els.fileProgramInput.click());
+  els.fileProgramInput.addEventListener('change', () => {
+    const file = els.fileProgramInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => { exitRunState(); setEditorText(String(reader.result)); };
+    reader.readAsText(file);
+    els.fileProgramInput.value = '';
+  });
+
+  /* ---------- Hilfe-Modal ---------- */
+  els.btnHelp.addEventListener('click', () => els.helpBackdrop.classList.add('open'));
+  els.btnHelpClose.addEventListener('click', () => els.helpBackdrop.classList.remove('open'));
+  els.helpBackdrop.addEventListener('click', (e) => { if (e.target === els.helpBackdrop) els.helpBackdrop.classList.remove('open'); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') els.helpBackdrop.classList.remove('open'); });
+
+  /* =========================================================================
+   * 5) TERRITORIUMS-ANSICHT (Canvas)
+   * ======================================================================= */
+  function updateStats(snap) {
+    els.statDir.textContent = DIR_NAMES[snap.hDir];
+    els.statGrain.textContent = String(snap.hGrain);
+    els.statPos.textContent = '(' + (snap.hRow + 1) + ', ' + (snap.hCol + 1) + ')';
+  }
+
+  function drawTerritory(snap, editing) {
+    const holderWidth = els.canvas.parentElement.clientWidth - 24;
+    const maxCell = 52, minCell = 20;
+    let cell = Math.floor(Math.min(holderWidth / snap.cols, 420 / snap.rows));
+    cell = Math.max(minCell, Math.min(maxCell, cell));
+    const dpr = window.devicePixelRatio || 1;
+    const cssW = cell * snap.cols, cssH = cell * snap.rows;
+    els.canvas.style.width = cssW + 'px';
+    els.canvas.style.height = cssH + 'px';
+    els.canvas.width = Math.round(cssW * dpr);
+    els.canvas.height = Math.round(cssH * dpr);
+    els.canvas.classList.toggle('editing', !!editing);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    const cs = getComputedStyle(document.documentElement);
+    const col = (name) => cs.getPropertyValue(name).trim();
+    const cPaper = col('--paper-3'), cWall = col('--wall'), cWallTop = col('--wall-top'),
+      cLine = col('--line'), cGrain = col('--grain'), cGrainSoft = col('--grain-soft'),
+      cAccent = col('--accent'), cInk = col('--ink'), cPaper2 = col('--paper-2');
+
+    ctx.clearRect(0, 0, cssW, cssH);
+    ctx.fillStyle = cPaper;
+    ctx.fillRect(0, 0, cssW, cssH);
+
+    for (let r = 0; r < snap.rows; r++) {
+      for (let c = 0; c < snap.cols; c++) {
+        const cell_ = snap.grid[r][c];
+        const x = c * cell, y = r * cell;
+        if (cell_.wall) {
+          ctx.fillStyle = cWall;
+          ctx.fillRect(x + 1, y + 1, cell - 2, cell - 2);
+          ctx.fillStyle = cWallTop;
+          ctx.fillRect(x + 1, y + 1, cell - 2, Math.max(2, cell * 0.14));
+        } else {
+          ctx.strokeStyle = cLine;
+          ctx.lineWidth = 1;
+          ctx.strokeRect(x + 0.5, y + 0.5, cell - 1, cell - 1);
+          if (cell_.grain > 0) {
+            const r_ = cell * 0.24;
+            ctx.beginPath();
+            ctx.arc(x + cell - r_ - 4, y + cell - r_ - 4, r_, 0, Math.PI * 2);
+            ctx.fillStyle = cGrainSoft;
+            ctx.fill();
+            ctx.strokeStyle = cGrain;
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+            ctx.fillStyle = cGrain;
+            ctx.font = '600 ' + Math.round(cell * 0.32) + 'px "JetBrains Mono", monospace';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(String(cell_.grain), x + cell - r_ - 4, y + cell - r_ - 3);
+          }
+        }
+      }
+    }
+
+    // Hamster
+    const hx = snap.hCol * cell + cell / 2, hy = snap.hRow * cell + cell / 2;
+    ctx.save();
+    ctx.translate(hx, hy);
+    ctx.rotate((snap.hDir * Math.PI) / 2);
+    const s = cell * 0.42;
+    ctx.beginPath(); ctx.ellipse(0, s * 0.15, s * 0.62, s * 0.72, 0, 0, Math.PI * 2); ctx.fillStyle = cAccent; ctx.fill();
+    ctx.beginPath(); ctx.arc(-s * 0.45, -s * 0.55, s * 0.28, 0, Math.PI * 2); ctx.fillStyle = cAccent; ctx.fill();
+    ctx.beginPath(); ctx.arc(s * 0.45, -s * 0.55, s * 0.28, 0, Math.PI * 2); ctx.fillStyle = cAccent; ctx.fill();
+    ctx.beginPath(); ctx.arc(-s * 0.45, -s * 0.55, s * 0.13, 0, Math.PI * 2); ctx.fillStyle = cPaper2; ctx.fill();
+    ctx.beginPath(); ctx.arc(s * 0.45, -s * 0.55, s * 0.13, 0, Math.PI * 2); ctx.fillStyle = cPaper2; ctx.fill();
+    ctx.beginPath(); ctx.arc(-s * 0.24, -s * 0.05, s * 0.1, 0, Math.PI * 2); ctx.fillStyle = cInk; ctx.fill();
+    ctx.beginPath(); ctx.arc(s * 0.24, -s * 0.05, s * 0.1, 0, Math.PI * 2); ctx.fillStyle = cInk; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(0, -s * 0.72); ctx.lineTo(-s * 0.16, -s * 0.4); ctx.lineTo(s * 0.16, -s * 0.4); ctx.closePath();
+    ctx.fillStyle = cInk; ctx.fill();
+    ctx.restore();
+  }
+
+  function resetView() {
+    const snap = new Territory(state.territoryDef).snapshot();
+    drawTerritory(snap, state.mode === 'edit');
+    updateStats(snap);
+  }
+  window.addEventListener('resize', () => {
+    if (state.mode === 'edit') drawEditGrid();
+    else if (state.frames) drawTerritory(state.frames[state.frameIndex].snapshot, false);
+    else resetView();
+  });
+
+  /* =========================================================================
+   * 6) TERRITORIUMS-EDITOR
+   * ======================================================================= */
+  els.btnModeRun.addEventListener('click', () => switchMode('run'));
+  els.btnModeEdit.addEventListener('click', () => switchMode('edit'));
+
+  function switchMode(mode) {
+    if (mode === state.mode) return;
+    if (mode === 'edit') {
+      exitRunState();
+      state.editDef = cloneDef(state.territoryDef);
+      els.rowsInput.value = state.editDef.rows;
+      els.colsInput.value = state.editDef.cols;
+      els.editControls.style.display = 'block';
+      els.btnModeEdit.classList.add('active');
+      els.btnModeRun.classList.remove('active');
+      state.mode = 'edit';
+      drawEditGrid();
+    } else {
+      els.editControls.style.display = 'none';
+      els.btnModeRun.classList.add('active');
+      els.btnModeEdit.classList.remove('active');
+      state.mode = 'run';
+      resetView();
+    }
+  }
+
+  [els.toolWall, els.toolGrain, els.toolHamster, els.toolErase].forEach((btn) => {
+    btn.addEventListener('click', () => {
+      state.editTool = btn.getAttribute('data-tool');
+      [els.toolWall, els.toolGrain, els.toolHamster, els.toolErase].forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+
+  function drawEditGrid() {
+    const snap = { rows: state.editDef.rows, cols: state.editDef.cols, grid: state.editDef.grid, hRow: state.editDef.hamster.row, hCol: state.editDef.hamster.col, hDir: state.editDef.hamster.dir, hGrain: state.editDef.hamster.grain };
+    drawTerritory(snap, true);
+  }
+
+  els.canvas.addEventListener('click', (e) => {
+    if (state.mode !== 'edit') return;
+    const rect = els.canvas.getBoundingClientRect();
+    const cell = rect.width / state.editDef.cols;
+    const c = Math.floor((e.clientX - rect.left) / cell);
+    const r = Math.floor((e.clientY - rect.top) / cell);
+    if (r < 0 || r >= state.editDef.rows || c < 0 || c >= state.editDef.cols) return;
+    const target = state.editDef.grid[r][c];
+    if (state.editTool === 'wall') {
+      target.wall = !target.wall;
+      if (target.wall) target.grain = 0;
+    } else if (state.editTool === 'grain') {
+      if (target.wall) return;
+      target.grain = (target.grain + 1) % 10;
+    } else if (state.editTool === 'erase') {
+      target.wall = false; target.grain = 0;
+    } else if (state.editTool === 'hamster') {
+      if (state.editDef.hamster.row === r && state.editDef.hamster.col === c) {
+        state.editDef.hamster.dir = (state.editDef.hamster.dir + 1) % 4;
+      } else {
+        target.wall = false;
+        state.editDef.hamster.row = r; state.editDef.hamster.col = c;
+      }
+    }
+    drawEditGrid();
+  });
+
+  els.btnApplySize.addEventListener('click', () => {
+    const newRows = Math.max(3, Math.min(24, parseInt(els.rowsInput.value, 10) || state.editDef.rows));
+    const newCols = Math.max(3, Math.min(28, parseInt(els.colsInput.value, 10) || state.editDef.cols));
+    state.editDef = resizeDef(state.editDef, newRows, newCols);
+    drawEditGrid();
+  });
+  els.btnClearGrid.addEventListener('click', () => {
+    const r = Math.max(3, Math.min(24, parseInt(els.rowsInput.value, 10) || 8));
+    const c = Math.max(3, Math.min(28, parseInt(els.colsInput.value, 10) || 10));
+    state.editDef = blankDef(r, c);
+    drawEditGrid();
+  });
+
+  function blankDef(rows, cols) {
+    const grid = [];
+    for (let r = 0; r < rows; r++) {
+      const row = [];
+      for (let c = 0; c < cols; c++) {
+        const border = r === 0 || c === 0 || r === rows - 1 || c === cols - 1;
+        row.push({ wall: border, grain: 0 });
+      }
+      grid.push(row);
+    }
+    return { name: 'Eigenes Territorium', rows, cols, grid, hamster: { row: 1, col: 1, dir: 1, grain: 0 } };
+  }
+
+  function resizeDef(def, newRows, newCols) {
+    const next = blankDef(newRows, newCols);
+    for (let r = 0; r < Math.min(def.rows, newRows); r++) {
+      for (let c = 0; c < Math.min(def.cols, newCols); c++) {
+        const isBorder = r === 0 || c === 0 || r === newRows - 1 || c === newCols - 1;
+        if (!isBorder) next.grid[r][c] = { wall: def.grid[r][c].wall, grain: def.grid[r][c].grain };
+      }
+    }
+    next.name = def.name;
+    next.hamster = {
+      row: Math.min(Math.max(1, def.hamster.row), newRows - 2),
+      col: Math.min(Math.max(1, def.hamster.col), newCols - 2),
+      dir: def.hamster.dir, grain: def.hamster.grain,
+    };
+    return next;
+  }
+
+  els.btnDoneEdit.addEventListener('click', () => {
+    state.territoryDef = cloneDef(state.editDef);
+    switchMode('run');
+  });
+
+  els.btnSaveTerritory.addEventListener('click', () => {
+    const payload = { schema: 'hamsterbau-territorium-v1', name: state.editDef.name, rows: state.editDef.rows, cols: state.editDef.cols, grid: state.editDef.grid, hamster: state.editDef.hamster };
+    downloadFile('territorium.json', JSON.stringify(payload, null, 2), 'application/json');
+  });
+  els.btnLoadTerritory.addEventListener('click', () => els.fileTerritoryInput.click());
+  els.fileTerritoryInput.addEventListener('change', () => {
+    const file = els.fileTerritoryInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const obj = JSON.parse(String(reader.result));
+        if (!obj.rows || !obj.cols || !obj.grid || !obj.hamster) throw new Error('ungültiges Format');
+        state.editDef = { name: obj.name || 'Geladenes Territorium', rows: obj.rows, cols: obj.cols, grid: obj.grid, hamster: obj.hamster };
+        els.rowsInput.value = obj.rows; els.colsInput.value = obj.cols;
+        drawEditGrid();
+      } catch (err) { alert('Diese Datei konnte nicht als Territorium gelesen werden.'); }
+    };
+    reader.readAsText(file);
+    els.fileTerritoryInput.value = '';
+  });
+
+  /* =========================================================================
+   * 7) START
+   * ======================================================================= */
+  els.examplePicker.value = 'kornsuche';
+  loadExample('kornsuche');
+})();
+</script>
+
+</body>
+</html>
