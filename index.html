@@ -224,13 +224,17 @@
   }
   .editor-inner { display: flex; position: relative; width: 100%; }
   /* Textfeld, Syntax-Overlay und Zeilennummern brauchen exakt dieselben
-     Textmaße, damit sie deckungsgleich übereinanderliegen. */
+     Textmaße, damit sie deckungsgleich übereinanderliegen. font-size und
+     line-height sind bewusst ganzzahlige px-Werte: eine gebrochene
+     Zeilenhöhe (z. B. 1.6 * 13.12px) rundet Safari pro Zeile anders als
+     die JS-Berechnung, wodurch die Ablauf-Markierung nach unten hin
+     zunehmend verrutscht. */
   .editor-gutter,
   .editor-code,
   textarea.editor-textarea {
     font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-    font-size: 0.82rem;
-    line-height: 1.6;
+    font-size: 13px;
+    line-height: 21px;
     tab-size: 4;
     -moz-tab-size: 4;
   }
@@ -248,7 +252,7 @@
     position: absolute;
     left: 0;
     right: 0;
-    height: 1.6em;
+    height: 21px;
     background: rgba(224, 169, 74, 0.16);
     border-top: 1px solid rgba(224, 169, 74, 0.5);
     border-bottom: 1px solid rgba(224, 169, 74, 0.5);
@@ -1375,8 +1379,10 @@
     const hl = els.editorHighlight;
     if (state.frames && state.frames[state.frameIndex] && state.frames[state.frameIndex].line) {
       const frame = state.frames[state.frameIndex];
-      const lineHeightPx = parseFloat(getComputedStyle(els.editorTextarea).lineHeight) || 22;
-      const top = (frame.line - 1) * lineHeightPx - els.editorTextarea.scrollTop + 12;
+      const cs = getComputedStyle(els.editorTextarea);
+      const lineHeightPx = parseFloat(cs.lineHeight) || 21;
+      const padTop = parseFloat(cs.paddingTop) || 0;
+      const top = Math.round((frame.line - 1) * lineHeightPx + padTop - els.editorTextarea.scrollTop);
       hl.style.display = 'block';
       hl.style.top = top + 'px';
       hl.style.height = lineHeightPx + 'px';
