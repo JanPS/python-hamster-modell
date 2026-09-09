@@ -1,5 +1,8 @@
 const { parse, Interpreter, PyError } = require('../interpreter.js');
 const { Territory } = require('../hamster-engine.js');
+const fs = require('fs');
+const path = require('path');
+const vm = require('vm');
 
 function makeTerritory(rowsSpec, hamster) {
   const grid = rowsSpec.map((row) => row.split('').map((ch) => ({
@@ -216,6 +219,36 @@ linksUm()
   const last = result.frames[result.frames.length - 1];
   check('monitor-lokal: b nach rückkehr weg', !new Map(last.vars).has('b'), JSON.stringify(last.vars));
   check('monitor-lokal: ergebnis=6 global', new Map(last.vars).get('ergebnis') === 6, JSON.stringify(last.vars));
+}
+
+// Test 12: aufgaben.js ist gültig und in sich stimmig
+{
+  const src = fs.readFileSync(path.join(__dirname, '..', '..', 'aufgaben.js'), 'utf8');
+  const sandbox = { window: {} };
+  let evalOk = true;
+  try { vm.runInNewContext(src, sandbox, { filename: 'aufgaben.js' }); }
+  catch (e) { evalOk = false; check('aufgaben.js: lädt ohne Syntaxfehler', false, e.message); }
+  if (evalOk) {
+    check('aufgaben.js: lädt ohne Syntaxfehler', true);
+    const list = sandbox.window.HAMSTERBAU_AUFGABEN;
+    check('aufgaben.js: nicht-leeres Array', Array.isArray(list) && list.length > 0, typeof list);
+    const ids = new Set();
+    let strukturOk = true;
+    let startOk = true;
+    for (const a of list || []) {
+      if (!a || !a.id || !a.titel || !Array.isArray(a.territorium) || a.territorium.length < 1) { strukturOk = false; continue; }
+      const w = a.territorium[0].length;
+      if (a.territorium.some((r) => typeof r !== 'string' || r.length !== w)) strukturOk = false;
+      ids.add(a.id);
+      const s = a.start || {};
+      const z = Number.isFinite(s.zeile) ? s.zeile : 1;
+      const sp = Number.isFinite(s.spalte) ? s.spalte : 1;
+      if (a.territorium[z] && a.territorium[z][sp] === '#') startOk = false;
+    }
+    check('aufgaben.js: jede Aufgabe hat id/titel/territorium, Zeilen gleich lang', strukturOk);
+    check('aufgaben.js: ids eindeutig', ids.size === (list ? list.length : 0), [...ids].join(','));
+    check('aufgaben.js: kein Hamster startet auf einer Wand', startOk);
+  }
 }
 
 console.log(failures === 0 ? '\nALLE TESTS OK' : `\n${failures} TEST(S) FEHLGESCHLAGEN`);

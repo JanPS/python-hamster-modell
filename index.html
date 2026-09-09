@@ -195,6 +195,17 @@
   }
   .task-box b { color: var(--accent-strong); }
 
+  .aufgaben-hinweis {
+    background: rgba(226, 131, 106, 0.12);
+    border: 1px solid rgba(226, 131, 106, 0.5);
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin-bottom: 12px;
+    font-size: 0.8rem;
+    line-height: 1.45;
+    color: var(--ink);
+  }
+
   /* ---------- Editor ---------- */
   .editor-wrap {
     position: relative;
@@ -444,6 +455,8 @@
         </div>
       </div>
 
+      <div id="aufgabenHinweis" class="aufgaben-hinweis" style="display:none;"></div>
+
       <div id="taskBox" class="task-box" style="display:none;">
         <b>Aufgabe:</b> <span id="taskText"></span>
       </div>
@@ -571,9 +584,16 @@
     <h3>Bedienung</h3>
     <p>Territorium wählen oder unter &bdquo;Territorium bauen&ldquo; selbst gestalten, Programm links eintippen, auf &bdquo;Start&ldquo; drücken. Danach lässt sich der Ablauf Schritt für Schritt vor- und zurückspulen oder automatisch abspielen. Der Variablen-Monitor unter der Ausgabe zeigt zu jedem Schritt den aktuellen Wert aller Variablen.</p>
 
+    <h3>Eigene Aufgaben</h3>
+    <p>Die Einträge der Auswahlliste stehen in der Datei <code>aufgaben.js</code> neben <code>index.html</code>. Sie ist kommentiert und kann direkt bearbeitet werden (Territorium als Textzeilen, Aufgabentext, Startprogramm) &ndash; danach die Seite neu laden.</p>
+
     <div class="modal-close-row"><button class="btn btn-primary" id="btnHelpClose" type="button">Schließen</button></div>
   </div>
 </div>
+
+<!-- Aufgaben/Territorien der Auswahlliste – frei anpassbar, siehe aufgaben.js.
+     Klassisches <script src>, damit es auch beim Öffnen per file:// lädt. -->
+<script src="aufgaben.js"></script>
 
 <script>
 (function () {
@@ -1045,58 +1065,99 @@
   }
 
   /* =========================================================================
-   * 3) BEISPIEL-TERRITORIEN
+   * 3) AUFGABEN / BEISPIEL-TERRITORIEN
+   *    Die Aufgaben stehen in der separaten Datei aufgaben.js
+   *    (window.HAMSTERBAU_AUFGABEN). Fehlt die Datei oder ist eine
+   *    Aufgabe fehlerhaft, greift die Fallback-Liste unten.
    * ======================================================================= */
   function T(rows, hamster, name) {
     const grid = rows.map((row) => row.split('').map((ch) => ({ wall: ch === '#', grain: /[1-9]/.test(ch) ? parseInt(ch, 10) : 0 })));
     return { name: name, rows: grid.length, cols: grid[0].length, grid: grid, hamster: hamster };
   }
 
-  const EXAMPLES = [
+  const RICHTUNGEN = {
+    N: 0, NORD: 0, NORDEN: 0,
+    O: 1, OST: 1, OSTEN: 1, E: 1,
+    S: 2, SUED: 2, SUEDEN: 2, 'SÜDEN': 2,
+    W: 3, WEST: 3, WESTEN: 3,
+  };
+
+  const FALLBACK_AUFGABEN = [
     {
-      id: 'kornsuche', title: 'Kornsuche (Beispiel gelöst)',
-      aufgabe: 'Sammle alle Körner in der Reihe ein.',
-      territory: T(['##########', '#.1.2.1.3#', '##########'], { row: 1, col: 1, dir: 1, grain: 0 }, 'Kornsuche'),
-      code: [
-        '# Raeumt ein Feld leer, auch wenn mehrere Koerner liegen.',
-        'def feldLeeren():',
-        '    while kornDa():',
-        '        nimm()',
-        '',
-        'feldLeeren()',
-        'while vornFrei():',
-        '    vor()',
-        '    feldLeeren()',
-        '',
-        'print("Fertig! Maul leer:", maulLeer())',
-        '',
-      ].join('\n'),
-    },
-    {
-      id: 'wand', title: 'Bis zur Wand',
-      aufgabe: 'Lass den Hamster laufen, bis er vor einer Wand steht, und zaehle dabei die Schritte.',
-      territory: T(['############', '#..........#', '############'], { row: 1, col: 1, dir: 1, grain: 0 }, 'Bis zur Wand'),
-      code: ['# Zaehle die Schritte bis zur Wand.', 'schritte = 0', '', '# Dein Code hier...', '', 'print("Schritte:", schritte)', ''].join('\n'),
-    },
-    {
-      id: 'quadrat', title: 'Das Quadrat',
-      aufgabe: 'Der Hamster soll ein Quadrat mit Seitenlaenge 4 ablaufen (nutze eine Schleife!).',
-      territory: T(['###########', '#.........#', '#.........#', '#.........#', '#.........#', '#.........#', '#.........#', '###########'], { row: 3, col: 3, dir: 1, grain: 0 }, 'Das Quadrat'),
-      code: ['# Tipp: eine Seite = 4x vor(), dann einmal drehen.', '# Das Ganze viermal wiederholen -> for-Schleife!', '', 'for seite in range(4):', '    # ... dein Code ...', '    pass', ''].join('\n'),
-    },
-    {
-      id: 'slalom', title: 'Der Slalom',
-      aufgabe: 'Fahre um die Hindernisse herum, ohne gegen eine Wand zu laufen.',
-      territory: T(['##############', '#............#', '#.##.##.##.#.#', '#............#', '##############'], { row: 1, col: 1, dir: 1, grain: 0 }, 'Der Slalom'),
-      code: ['# Finde einen Weg um die Hindernisse.', 'while vornFrei():', '    vor()', ''].join('\n'),
-    },
-    {
-      id: 'leer', title: 'Leeres Territorium',
-      aufgabe: '',
+      id: 'leer', title: 'Leeres Territorium', aufgabe: '',
       territory: T(['############', '#..........#', '#..........#', '#..........#', '#..........#', '############'], { row: 1, col: 1, dir: 1, grain: 0 }, 'Leeres Territorium'),
       code: '# Schreibe hier dein eigenes Hamster-Programm...\n',
     },
   ];
+
+  const num = (v) => (typeof v === 'number' && isFinite(v) ? v : null);
+
+  function normalisiereAufgabe(roh, i) {
+    if (!roh || typeof roh !== 'object') throw new Error('Aufgabe ' + (i + 1) + ' ist kein Objekt.');
+    const titel = String(roh.titel || roh.title || roh.id || ('Aufgabe ' + (i + 1)));
+    const id = String(roh.id || ('aufgabe' + (i + 1)));
+
+    const rows = roh.territorium || roh.territory;
+    if (!Array.isArray(rows) || rows.length < 1 || rows.some((r) => typeof r !== 'string')) {
+      throw new Error('"' + titel + '": Feld "territorium" fehlt oder ist keine Liste von Textzeilen.');
+    }
+    const breite = rows[0].length;
+    if (breite < 1 || rows.some((r) => r.length !== breite)) {
+      throw new Error('"' + titel + '": alle Zeilen in "territorium" müssen dieselbe Länge haben.');
+    }
+
+    const start = roh.start || {};
+    let zeile = num(start.zeile) != null ? start.zeile : (num(start.row) != null ? start.row : 1);
+    let spalte = num(start.spalte) != null ? start.spalte : (num(start.col) != null ? start.col : 1);
+    zeile = Math.min(Math.max(0, zeile | 0), rows.length - 1);
+    spalte = Math.min(Math.max(0, spalte | 0), breite - 1);
+
+    let dir = 1;
+    if (start.richtung != null) {
+      const key = String(start.richtung).trim().toUpperCase();
+      if (RICHTUNGEN[key] == null) throw new Error('"' + titel + '": unbekannte Richtung "' + start.richtung + '" (erlaubt: N, O, S, W).');
+      dir = RICHTUNGEN[key];
+    } else if (num(start.dir) != null) {
+      dir = ((start.dir % 4) + 4) % 4;
+    }
+
+    if (rows[zeile][spalte] === '#') {
+      throw new Error('"' + titel + '": der Hamster startet auf einer Wand (Zeile ' + zeile + ', Spalte ' + spalte + ').');
+    }
+
+    const koerner = num(start.koerner) != null ? start.koerner : (num(start.grain) != null ? start.grain : 0);
+
+    return {
+      id: id,
+      title: titel,
+      aufgabe: roh.aufgabe ? String(roh.aufgabe) : '',
+      territory: T(rows, { row: zeile, col: spalte, dir: dir, grain: Math.max(0, koerner | 0) }, titel),
+      code: roh.code != null ? String(roh.code) : '# Schreibe hier dein Hamster-Programm...\n',
+    };
+  }
+
+  const aufgabenFehler = [];
+  const EXAMPLES = (function () {
+    const quelle = window.HAMSTERBAU_AUFGABEN;
+    if (!Array.isArray(quelle) || quelle.length === 0) {
+      aufgabenFehler.push('aufgaben.js wurde nicht gefunden oder enthält keine Aufgaben.');
+      return FALLBACK_AUFGABEN.slice();
+    }
+    const ok = [];
+    const gesehen = new Set();
+    quelle.forEach((roh, i) => {
+      try {
+        const a = normalisiereAufgabe(roh, i);
+        if (gesehen.has(a.id)) a.id = a.id + '-' + (i + 1);
+        gesehen.add(a.id);
+        ok.push(a);
+      } catch (e) {
+        aufgabenFehler.push(e.message);
+      }
+    });
+    if (aufgabenFehler.length) console.warn('[Hamsterbau] Aufgaben-Hinweis:\n- ' + aufgabenFehler.join('\n- '));
+    return ok.length ? ok : FALLBACK_AUFGABEN.slice();
+  })();
 
   /* -------------------------------------------------------------------------
    * Datei-Download (normaler Browser-Download, kein Artifact-Runtime noetig)
@@ -1119,7 +1180,7 @@
   const $ = (id) => document.getElementById(id);
   const els = {
     examplePicker: $('examplePicker'), btnHelp: $('btnHelp'), helpBackdrop: $('helpBackdrop'), btnHelpClose: $('btnHelpClose'),
-    taskBox: $('taskBox'), taskText: $('taskText'),
+    taskBox: $('taskBox'), taskText: $('taskText'), aufgabenHinweis: $('aufgabenHinweis'),
     editorGutter: $('editorGutter'), editorHighlight: $('editorHighlight'), editorTextarea: $('editorTextarea'),
     errorBanner: $('errorBanner'),
     btnRun: $('btnRun'), btnEditBack: $('btnEditBack'),
@@ -1604,8 +1665,14 @@
   /* =========================================================================
    * 7) START
    * ======================================================================= */
-  els.examplePicker.value = 'kornsuche';
-  loadExample('kornsuche');
+  els.examplePicker.value = EXAMPLES[0].id;
+  loadExample(EXAMPLES[0].id);
+  if (aufgabenFehler.length) {
+    els.aufgabenHinweis.style.display = 'block';
+    els.aufgabenHinweis.textContent = (aufgabenFehler.length === 1 && aufgabenFehler[0].indexOf('nicht gefunden') !== -1)
+      ? 'Hinweis: ' + aufgabenFehler[0] + ' Es wird ein leeres Territorium angezeigt.'
+      : aufgabenFehler.length + ' Aufgabe(n) in aufgaben.js übersprungen: ' + aufgabenFehler.join(' | ');
+  }
 })();
 </script>
 
