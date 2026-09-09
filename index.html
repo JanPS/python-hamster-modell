@@ -28,6 +28,14 @@
     --code-ink: #ecdcb8;
     --code-ink-soft: #a9997b;
     --code-accent: #e2ac57;
+    /* Syntax-Highlighting – der Editor-Hintergrund ist in beiden Themes dunkel,
+       daher genügt ein Farbsatz. */
+    --tok-keyword: #e6a94b;
+    --tok-fn: #79b4cf;
+    --tok-string: #a3c884;
+    --tok-number: #e0a06f;
+    --tok-comment: #857a62;
+    --tok-const: #cf90b4;
     --shadow: 20px 16px 0 rgba(44, 33, 22, 0.06);
     --radius: 10px;
     --focus: #935e14;
@@ -215,16 +223,26 @@
     border: 1px solid var(--code-bg-2);
   }
   .editor-inner { display: flex; position: relative; width: 100%; }
+  /* Textfeld, Syntax-Overlay und Zeilennummern brauchen exakt dieselben
+     Textmaße, damit sie deckungsgleich übereinanderliegen. */
+  .editor-gutter,
+  .editor-code,
+  textarea.editor-textarea {
+    font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    tab-size: 4;
+    -moz-tab-size: 4;
+  }
   .editor-gutter {
     flex: none;
     padding: 12px 8px;
     text-align: right;
     color: var(--code-ink-soft);
-    font-size: 0.82rem;
-    line-height: 1.6;
     user-select: none;
     white-space: pre;
     background: var(--code-bg-2);
+    overflow: hidden;
   }
   .editor-highlight {
     position: absolute;
@@ -236,25 +254,45 @@
     border-bottom: 1px solid rgba(224, 169, 74, 0.5);
     pointer-events: none;
     display: none;
+    z-index: 0;
   }
   .editor-highlight.error { background: rgba(226, 131, 106, 0.2); border-color: rgba(226, 131, 106, 0.65); }
+  .editor-code {
+    position: absolute;
+    inset: 0;
+    padding: 12px 14px;
+    overflow: hidden;
+    pointer-events: none;
+    color: var(--code-ink);
+    background: transparent;
+    z-index: 1;
+  }
+  .editor-code #editorCodeInner { white-space: pre; will-change: transform; }
+  .editor-code .tok-keyword { color: var(--tok-keyword); font-weight: 600; }
+  .editor-code .tok-fn      { color: var(--tok-fn); }
+  .editor-code .tok-string  { color: var(--tok-string); }
+  .editor-code .tok-number  { color: var(--tok-number); }
+  .editor-code .tok-comment { color: var(--tok-comment); font-style: italic; }
+  .editor-code .tok-const   { color: var(--tok-const); }
   textarea.editor-textarea {
+    position: relative;
+    z-index: 2;
     display: block;
     width: 100%;
     box-sizing: border-box;
     resize: none;
     border: none;
     background: transparent;
-    color: var(--code-ink);
-    font-size: 0.82rem;
-    line-height: 1.6;
+    color: transparent;
+    caret-color: var(--code-ink);
     padding: 12px 14px;
     min-height: 340px;
     white-space: pre;
     overflow: auto;
   }
-  textarea.editor-textarea:disabled { color: var(--code-ink); opacity: 0.92; }
+  textarea.editor-textarea:disabled { opacity: 0.92; }
   textarea.editor-textarea:focus { outline: none; }
+  textarea.editor-textarea::selection { background: rgba(224, 169, 74, 0.32); color: transparent; }
 
   .console-box {
     margin-top: 10px;
@@ -463,10 +501,12 @@
 
       <div class="editor-wrap">
         <div class="editor-inner">
-          <div class="editor-gutter" id="editorGutter">1</div>
+          <div class="editor-gutter" id="editorGutter"><div id="editorGutterInner">1</div></div>
           <div style="position:relative; flex:1 1 0; min-width:0;">
             <div class="editor-highlight" id="editorHighlight"></div>
+            <div class="editor-code" id="editorCode" aria-hidden="true"><div id="editorCodeInner"></div></div>
             <textarea id="editorTextarea" class="editor-textarea" spellcheck="false" wrap="off"
+              autocomplete="off" autocapitalize="off" autocorrect="off"
               aria-label="Python-Programm für den Hamster"></textarea>
           </div>
         </div>
@@ -582,7 +622,7 @@
     <p>Listen, Dictionaries, Klassen, Imports, f-Strings, Slicing. Für den Hamster reicht das eingebaute Sprach-Subset völlig &ndash; das hält den Fokus auf Kontrollstrukturen statt auf Python-Vollständigkeit.</p>
 
     <h3>Bedienung</h3>
-    <p>Territorium wählen oder unter &bdquo;Territorium bauen&ldquo; selbst gestalten, Programm links eintippen, auf &bdquo;Start&ldquo; drücken. Danach lässt sich der Ablauf Schritt für Schritt vor- und zurückspulen oder automatisch abspielen. Der Variablen-Monitor unter der Ausgabe zeigt zu jedem Schritt den aktuellen Wert aller Variablen.</p>
+    <p>Territorium wählen oder unter &bdquo;Territorium bauen&ldquo; selbst gestalten, Programm links eintippen (mit Monospace-Schrift und Syntax-Hervorhebung), auf &bdquo;Start&ldquo; drücken. Danach lässt sich der Ablauf Schritt für Schritt vor- und zurückspulen oder automatisch abspielen. Der Variablen-Monitor unter der Ausgabe zeigt zu jedem Schritt den aktuellen Wert aller Variablen.</p>
 
     <h3>Eigene Aufgaben</h3>
     <p>Die Einträge der Auswahlliste stehen in der Datei <code>aufgaben.js</code> neben <code>index.html</code>. Sie ist kommentiert und kann direkt bearbeitet werden (Territorium als Textzeilen, Aufgabentext, Startprogramm) &ndash; danach die Seite neu laden.</p>
@@ -1181,7 +1221,9 @@
   const els = {
     examplePicker: $('examplePicker'), btnHelp: $('btnHelp'), helpBackdrop: $('helpBackdrop'), btnHelpClose: $('btnHelpClose'),
     taskBox: $('taskBox'), taskText: $('taskText'), aufgabenHinweis: $('aufgabenHinweis'),
-    editorGutter: $('editorGutter'), editorHighlight: $('editorHighlight'), editorTextarea: $('editorTextarea'),
+    editorGutter: $('editorGutter'), editorGutterInner: $('editorGutterInner'),
+    editorHighlight: $('editorHighlight'), editorCode: $('editorCode'), editorCodeInner: $('editorCodeInner'),
+    editorTextarea: $('editorTextarea'),
     errorBanner: $('errorBanner'),
     btnRun: $('btnRun'), btnEditBack: $('btnEditBack'),
     scrubRow: $('scrubRow'), btnStepBack: $('btnStepBack'), btnPlayPause: $('btnPlayPause'), btnStepFwd: $('btnStepFwd'),
@@ -1236,17 +1278,74 @@
 
   els.examplePicker.addEventListener('change', () => loadExample(els.examplePicker.value));
 
-  /* ---------- Editor: Gutter, Tab, Auto-Einrueckung ---------- */
-  function setEditorText(text) { els.editorTextarea.value = text; syncGutter(); }
+  /* ---------- Editor: Gutter, Syntax-Highlighting, Tab, Auto-Einrueckung ---------- */
+  const PY_KEYWORDS = new Set(['if', 'elif', 'else', 'while', 'for', 'in', 'def', 'return', 'break', 'continue', 'pass', 'and', 'or', 'not']);
+  const PY_CONSTANTS = new Set(['True', 'False', 'None']);
+  const PY_FUNCS = new Set(['vor', 'linksUm', 'rechtsUm', 'kehrt', 'nimm', 'gib', 'vornFrei', 'kornDa', 'maulLeer', 'print', 'range', 'len', 'abs', 'int']);
+
+  function escTok(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function highlightPython(src) {
+    let out = '';
+    let i = 0;
+    const n = src.length;
+    while (i < n) {
+      const c = src[i];
+      if (c === '#') {
+        let j = src.indexOf('\n', i);
+        if (j === -1) j = n;
+        out += '<span class="tok-comment">' + escTok(src.slice(i, j)) + '</span>';
+        i = j;
+      } else if (c === '"' || c === "'") {
+        let j = i + 1;
+        while (j < n && src[j] !== c && src[j] !== '\n') { j += src[j] === '\\' ? 2 : 1; }
+        if (j < n && src[j] === c) j++;
+        out += '<span class="tok-string">' + escTok(src.slice(i, j)) + '</span>';
+        i = j;
+      } else if (c >= '0' && c <= '9') {
+        let j = i;
+        while (j < n && /[0-9.]/.test(src[j])) j++;
+        out += '<span class="tok-number">' + src.slice(i, j) + '</span>';
+        i = j;
+      } else if (/[A-Za-z_]/.test(c)) {
+        let j = i;
+        while (j < n && /[A-Za-z0-9_]/.test(src[j])) j++;
+        const word = src.slice(i, j);
+        const cls = PY_KEYWORDS.has(word) ? 'tok-keyword'
+          : PY_CONSTANTS.has(word) ? 'tok-const'
+          : PY_FUNCS.has(word) ? 'tok-fn' : null;
+        out += cls ? '<span class="' + cls + '">' + word + '</span>' : word;
+        i = j;
+      } else {
+        let j = i;
+        while (j < n && !/[#"'\w]/.test(src[j])) j++;
+        out += escTok(src.slice(i, j));
+        i = j;
+      }
+    }
+    return out;
+  }
+
+  function setEditorText(text) { els.editorTextarea.value = text; refreshEditor(); }
+  function refreshEditor() { syncGutter(); renderHighlight(); }
   function syncGutter() {
     const n = els.editorTextarea.value.split('\n').length;
     let out = '';
     for (let i = 1; i <= n; i++) out += i + '\n';
-    els.editorGutter.textContent = out;
+    els.editorGutterInner.textContent = out;
   }
-  els.editorTextarea.addEventListener('input', syncGutter);
+  function renderHighlight() {
+    try { els.editorCodeInner.innerHTML = highlightPython(els.editorTextarea.value); }
+    catch (e) { els.editorCodeInner.textContent = els.editorTextarea.value; }
+    syncEditorScroll();
+  }
+  function syncEditorScroll() {
+    const y = els.editorTextarea.scrollTop, x = els.editorTextarea.scrollLeft;
+    els.editorGutterInner.style.transform = 'translateY(' + (-y) + 'px)';
+    els.editorCodeInner.style.transform = 'translate(' + (-x) + 'px, ' + (-y) + 'px)';
+  }
+  els.editorTextarea.addEventListener('input', refreshEditor);
   els.editorTextarea.addEventListener('scroll', () => {
-    els.editorGutter.scrollTop = els.editorTextarea.scrollTop;
+    syncEditorScroll();
     positionHighlight();
   });
   els.editorTextarea.addEventListener('keydown', (e) => {
@@ -1256,7 +1355,7 @@
       const s = ta.selectionStart, en = ta.selectionEnd;
       ta.value = ta.value.slice(0, s) + '    ' + ta.value.slice(en);
       ta.selectionStart = ta.selectionEnd = s + 4;
-      syncGutter();
+      refreshEditor();
     } else if (e.key === 'Enter') {
       const ta = els.editorTextarea;
       const s = ta.selectionStart;
@@ -1268,7 +1367,7 @@
       e.preventDefault();
       ta.value = ta.value.slice(0, s) + '\n' + indent + ta.value.slice(ta.selectionEnd);
       ta.selectionStart = ta.selectionEnd = s + 1 + indent.length;
-      syncGutter();
+      refreshEditor();
     }
   });
 

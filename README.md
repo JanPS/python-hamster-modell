@@ -13,6 +13,7 @@ unter https://janps.github.io/python-hamster-modell/
 
 - **Original-Hamster-Befehle:** `vor()`, `linksUm()`, `nimm()`, `gib()`, `vornFrei()`, `kornDa()`, `maulLeer()` – plus die praktischen Zusatzbefehle `rechtsUm()` und `kehrt()`
 - **Python-Subset:** Variablen & Zuweisung (inkl. `+= -= *= /=`), `if/elif/else`, `while`, `for x in range(...)`, `def`/`return` (inkl. Rekursion), `break`/`continue`/`pass`, `print(...)`, Vergleiche, `and/or/not`, die üblichen Rechenoperatoren, Kommentare
+- **Code-Editor:** Monospace-Schrift, leichtgewichtiges Syntax-Highlighting (Schlüsselwörter, Hamster-Befehle, Strings, Zahlen, Kommentare), Zeilennummern, Auto-Einrückung
 - **Schritt-für-Schritt-Wiedergabe:** Play/Pause, Vor/Zurück, Geschwindigkeitsregler, synchrone Zeilen-Hervorhebung im Code (auch für reine Rechenschritte)
 - **Variablen-Monitor:** zeigt zu jedem Schritt alle Variablen und ihren aktuellen Wert; während eines Funktionsaufrufs zusätzlich die lokalen Variablen
 - **Territoriums-Editor:** eigene Territorien klicken (Größe, Wände, Körner, Startposition/-richtung), als JSON speichern/laden
@@ -28,7 +29,7 @@ Die Anwendungslogik steckt komplett in `index.html`:
 1. **Mini-Python-Interpreter** (Tokenizer → Parser → Tree-Walking-Interpreter) mit Frame-Aufzeichnung: jeder Hamster-Befehl, jede Zuweisung und jedes `print()` erzeugt einen Snapshot, sodass der Ablauf danach frei durchgescrubbt werden kann.
 2. **Hamster-Territorium** – das Datenmodell (Grid, Wände, Körner, Position/Richtung) inklusive der Original-Befehle und ihrer Fehlerfälle (gegen die Wand laufen, ohne Korn nehmen/ablegen).
 3. **Aufgaben-Lader** – liest `window.HAMSTERBAU_AUFGABEN` aus `aufgaben.js`, prüft jeden Eintrag und wandelt ihn in ein Territorium um.
-4. **UI** – Code-Editor mit Zeilennummern, Canvas-Rendering des Territoriums, Variablen-Monitor, Territoriums-Editor, Hilfe-Modal.
+4. **UI** – Code-Editor (Overlay-Technik: transparentes `<textarea>` über einer eingefärbten `<div>`-Ebene, ~40 Zeilen eigener Tokenizer, keine Fremdbibliothek), Canvas-Rendering des Territoriums, Variablen-Monitor, Territoriums-Editor, Hilfe-Modal.
 
 ## Eigene Territorien & Aufgaben
 
