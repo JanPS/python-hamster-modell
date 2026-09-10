@@ -16,7 +16,7 @@ unter https://janps.github.io/python-hamster-modell/
 - **Code-Editor:** Monospace-Schrift, leichtgewichtiges Syntax-Highlighting (Schlüsselwörter, Hamster-Befehle, Strings, Zahlen, Kommentare), Zeilennummern, Auto-Einrückung
 - **Schritt-für-Schritt-Wiedergabe:** Play/Pause, Vor/Zurück, Geschwindigkeitsregler, synchrone Zeilen-Hervorhebung im Code (auch für reine Rechenschritte)
 - **Variablen-Monitor:** zeigt zu jedem Schritt alle Variablen und ihren aktuellen Wert; während eines Funktionsaufrufs zusätzlich die lokalen Variablen
-- **Territoriums-Editor:** eigene Territorien klicken (Größe, Wände, Körner, Startposition/-richtung, Körner im Maul zu Beginn), als JSON speichern/laden
+- **Territoriums-Editor:** eigene Territorien klicken (Größe, Wände, Körner, Startposition/-richtung, Körner im Maul zu Beginn), als JSON speichern/laden, per Klick auf die Aufgaben-Vorgabe zurücksetzen
 - **Aufgaben in `aufgaben.js`:** Auswahlliste frei anpassbar (Territorium als ASCII-Zeilen, Aufgabentext, Startprogramm); fehlerhafte Einträge werden übersprungen und oben gemeldet
 - **Bearbeitungsstand bleibt erhalten:** pro Aufgabe (Programm + Territorium), über Aufgabenwechsel und Seiten-Neuladen hinweg (Browser-Speicher); zusätzlich als portable `.json`-Datei sicher- und ladbar – inklusive der verwendeten Aufgaben
 - **Programm speichern/laden** als `.py`-Textdatei

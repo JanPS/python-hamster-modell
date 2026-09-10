@@ -597,6 +597,7 @@
           <input type="number" id="colsInput" min="3" max="28" value="10">
           <button class="btn btn-sm" id="btnApplySize" type="button">Größe anwenden</button>
           <button class="btn btn-sm" id="btnClearGrid" type="button">Neu (leer)</button>
+          <button class="btn btn-sm" id="btnResetTerritory" type="button" title="Territorium auf die in der Aufgabe vorgegebene Ausgangslage zurücksetzen">↺ Aufgaben-Vorgabe</button>
         </div>
         <div class="edit-file-row">
           <button class="btn btn-sm" id="btnSaveTerritory" type="button">Territorium speichern</button>
@@ -659,7 +660,7 @@
     <h3>Bedienung</h3>
     <p>Territorium wählen oder unter &bdquo;Territorium bauen&ldquo; selbst gestalten, Programm links eintippen (mit Monospace-Schrift und Syntax-Hervorhebung), auf &bdquo;Start&ldquo; drücken. Danach lässt sich der Ablauf Schritt für Schritt vor- und zurückspulen oder automatisch abspielen. Der Variablen-Monitor unter der Ausgabe zeigt zu jedem Schritt den aktuellen Wert aller Variablen.</p>
 
-    <p>Im Territoriums-Editor legt das Feld &bdquo;Körner im Maul (Start)&ldquo; fest, mit wie vielen Körnern der Hamster beginnt; der Hamster auf dem Spielfeld zeigt diese Zahl als kleine Marke.</p>
+    <p>Im Territoriums-Editor legt das Feld &bdquo;Körner im Maul (Start)&ldquo; fest, mit wie vielen Körnern der Hamster beginnt; der Hamster auf dem Spielfeld zeigt diese Zahl als kleine Marke. &bdquo;↺ Aufgaben-Vorgabe&ldquo; stellt das Territorium wieder auf die Ausgangslage der gewählten Aufgabe zurück.</p>
 
     <h3>Eigene Aufgaben</h3>
     <p>Die Einträge der Auswahlliste stehen in der Datei <code>aufgaben.js</code> neben <code>index.html</code>. Sie ist kommentiert und kann direkt bearbeitet werden (Territorium als Textzeilen, Aufgabentext, Startprogramm) &ndash; danach die Seite neu laden.</p>
@@ -1273,7 +1274,8 @@
     btnSaveAll: $('btnSaveAll'), btnLoadAll: $('btnLoadAll'), fileAllInput: $('fileAllInput'),
     btnModeRun: $('btnModeRun'), btnModeEdit: $('btnModeEdit'), editControls: $('editControls'),
     toolWall: $('toolWall'), toolGrain: $('toolGrain'), toolHamster: $('toolHamster'), toolErase: $('toolErase'),
-    rowsInput: $('rowsInput'), colsInput: $('colsInput'), grainInput: $('grainInput'), btnApplySize: $('btnApplySize'), btnClearGrid: $('btnClearGrid'),
+    rowsInput: $('rowsInput'), colsInput: $('colsInput'), grainInput: $('grainInput'),
+    btnApplySize: $('btnApplySize'), btnClearGrid: $('btnClearGrid'), btnResetTerritory: $('btnResetTerritory'),
     btnSaveTerritory: $('btnSaveTerritory'), btnLoadTerritory: $('btnLoadTerritory'), fileTerritoryInput: $('fileTerritoryInput'),
     btnDoneEdit: $('btnDoneEdit'),
     canvas: $('stage'), statDir: $('statDir'), statGrain: $('statGrain'), statPos: $('statPos'),
@@ -1971,7 +1973,17 @@
     const snap = { rows: state.editDef.rows, cols: state.editDef.cols, grid: state.editDef.grid, hRow: state.editDef.hamster.row, hCol: state.editDef.hamster.col, hDir: state.editDef.hamster.dir, hGrain: state.editDef.hamster.grain || 0 };
     drawTerritory(snap, true);
     updateStats(snap);
+    const t = taskById(state.currentId);
+    els.btnResetTerritory.disabled = !t || sameTerritory(state.editDef, t.territory);
   }
+
+  els.btnResetTerritory.addEventListener('click', () => {
+    const t = taskById(state.currentId);
+    if (!t) return;
+    state.editDef = cloneDef(t.territory);
+    syncEditInputs();
+    drawEditGrid();
+  });
 
   els.canvas.addEventListener('click', (e) => {
     if (state.mode !== 'edit') return;
