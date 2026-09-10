@@ -1,5 +1,6 @@
+// SPDX-License-Identifier: MIT — Copyright (c) 2026 Jan Schuster. Siehe LICENSE.
 // ---------------------------------------------------------------------------
-// Hamster-Territorium: Datenmodell + Befehle (Port des Java-Hamster-Modells)
+// Hamster-Territorium: Datenmodell + Befehle (nach dem Hamster-Modell von D. Boles)
 // Richtungen: 0=Norden(oben) 1=Osten(rechts) 2=Sueden(unten) 3=Westen(links)
 // ---------------------------------------------------------------------------
 const { HamsterError } = (typeof module !== 'undefined') ? require('./interpreter.js') : { HamsterError: Error };

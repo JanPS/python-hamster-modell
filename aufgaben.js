@@ -1,4 +1,6 @@
 /*
+ * SPDX-License-Identifier: MIT — Copyright (c) 2026 Jan Schuster. Siehe LICENSE.
+ *
  * aufgaben.js — Aufgaben & Territorien für Hamsterbau
  * ==================================================================
  *

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT — Copyright (c) 2026 Jan Schuster. Siehe LICENSE.
 const { parse, Interpreter, PyError } = require('../interpreter.js');
 const { Territory } = require('../hamster-engine.js');
 const fs = require('fs');

@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT — Copyright (c) 2026 Jan Schuster. Siehe LICENSE.
 // ---------------------------------------------------------------------------
 // Mini-Python-Interpreter für das Hamster-Modell
 // Unterstützt: Zahlen, Strings, bool, None, Variablen, Zuweisung (=, +=, -=,

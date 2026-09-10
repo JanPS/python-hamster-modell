@@ -1,6 +1,6 @@
 # Hamsterbau
 
-Ein Port des [Java-Hamster-Modells](https://www.java-hamster-modell.de/simulator.html) auf Python – vollständig im Browser, ohne Installation. Kein Pyodide, kein Build-Schritt: ein eigenständiger Python-Interpreter in reinem JavaScript treibt den Hamster an. Die App besteht aus `index.html` (alles inline) plus der frei anpassbaren Aufgabensammlung `aufgaben.js`.
+Das [Hamster-Modell](https://www.java-hamster-modell.de/simulator.html) mit Python statt Java – vollständig im Browser, ohne Installation. Kein Pyodide, kein Build-Schritt: ein eigenständiger Python-Interpreter in reinem JavaScript treibt den Hamster an. Die App besteht aus `index.html` (alles inline) plus der frei anpassbaren Aufgabensammlung `aufgaben.js`.
 
 ## Nutzung
 
@@ -69,6 +69,10 @@ node test/run-tests.js
 
 Wer den Interpreter selbst weiterentwickelt, kann hier isoliert testen (Wandkollision, Kornsammeln, Rekursion, Endlosschleifen-Schutz, Syntaxfehler, Variablen-Monitor, `aufgaben.js`) und die geprüften Änderungen danach von Hand in den `<script>`-Block von `index.html` übernehmen.
 
-## Lizenz / Nutzung
+## Lizenz
 
-Frei nutz- und anpassbar für den eigenen Unterricht.
+[MIT](LICENSE) – frei nutz-, veränder- und weitergebbar (auch für den Unterricht, auf dem Schulserver, in eigenen Materialien). Einzige Auflage: Copyright- und Lizenzhinweis beibehalten.
+
+## Herkunft
+
+Angelehnt an das [Hamster-Modell](https://www.java-hamster-modell.de/) von Dietrich Boles. Dies ist eine eigenständige Implementierung in JavaScript/Python – es wurde kein Code aus dem Original übernommen.
