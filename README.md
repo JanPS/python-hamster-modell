@@ -18,6 +18,7 @@ unter https://janps.github.io/python-hamster-modell/
 - **Variablen-Monitor:** zeigt zu jedem Schritt alle Variablen und ihren aktuellen Wert; während eines Funktionsaufrufs zusätzlich die lokalen Variablen
 - **Territoriums-Editor:** eigene Territorien klicken (Größe, Wände, Körner, Startposition/-richtung), als JSON speichern/laden
 - **Aufgaben in `aufgaben.js`:** Auswahlliste frei anpassbar (Territorium als ASCII-Zeilen, Aufgabentext, Startprogramm); fehlerhafte Einträge werden übersprungen und oben gemeldet
+- **Bearbeitungsstand bleibt erhalten:** pro Aufgabe (Programm + Territorium), über Aufgabenwechsel und Seiten-Neuladen hinweg (Browser-Speicher); zusätzlich als portable `.json`-Datei sicher- und ladbar – inklusive der verwendeten Aufgaben
 - **Programm speichern/laden** als `.py`-Textdatei
 
 Bewusst *nicht* enthalten: Listen, Dictionaries, Klassen, Imports, f-Strings – für das Hamster-Modell reicht das kleinere Sprach-Subset völlig aus und hält den Fokus auf Kontrollstrukturen.
@@ -29,7 +30,8 @@ Die Anwendungslogik steckt komplett in `index.html`:
 1. **Mini-Python-Interpreter** (Tokenizer → Parser → Tree-Walking-Interpreter) mit Frame-Aufzeichnung: jeder Hamster-Befehl, jede Zuweisung und jedes `print()` erzeugt einen Snapshot, sodass der Ablauf danach frei durchgescrubbt werden kann.
 2. **Hamster-Territorium** – das Datenmodell (Grid, Wände, Körner, Position/Richtung) inklusive der Original-Befehle und ihrer Fehlerfälle (gegen die Wand laufen, ohne Korn nehmen/ablegen).
 3. **Aufgaben-Lader** – liest `window.HAMSTERBAU_AUFGABEN` aus `aufgaben.js`, prüft jeden Eintrag und wandelt ihn in ein Territorium um.
-4. **UI** – Code-Editor (Overlay-Technik: transparentes `<textarea>` über einer eingefärbten `<div>`-Ebene, ~40 Zeilen eigener Tokenizer, keine Fremdbibliothek), Canvas-Rendering des Territoriums, Variablen-Monitor, Territoriums-Editor, Hilfe-Modal.
+4. **Bearbeitungsstand** – pro Aufgabe wird abweichendes Programm/Territorium in `localStorage` gehalten (`hamsterbau.stand.v1`) und beim Start wiederhergestellt; Export/Import als `hamsterbau-arbeitsstand-v1`-JSON inklusive der Aufgaben-Definitionen.
+5. **UI** – Code-Editor (Overlay-Technik: transparentes `<textarea>` über einer eingefärbten `<div>`-Ebene, ~40 Zeilen eigener Tokenizer, keine Fremdbibliothek), Canvas-Rendering des Territoriums, Variablen-Monitor, Territoriums-Editor, Hilfe-Modal.
 
 ## Eigene Territorien & Aufgaben
 
@@ -51,6 +53,10 @@ Die Auswahlliste wird aus `aufgaben.js` gefüllt. Die Datei ist ausführlich kom
 ```
 
 Datei bearbeiten, speichern, Seite neu laden. Fehlerhafte Einträge (ungleiche Zeilenlängen, Start auf einer Wand, unbekannte Richtung) werden übersprungen und oberhalb des Editors gemeldet – Details in der Browser-Konsole. `node dev/test/run-tests.js` prüft `aufgaben.js` zusätzlich auf Syntax und Struktur. Alternativ bauen Lernende Territorien live über „Territorium bauen“ und exportieren sie als `.json`.
+
+### Bearbeitungsstand mitnehmen
+
+Der Bearbeitungsstand jeder Aufgabe (Programm **und** Territorium) bleibt beim Wechsel der Aufgabe und über das Neuladen der Seite hinweg erhalten – lokal im Browser. „Arbeitsstand sichern“ schreibt den Stand *aller* Aufgaben – samt der Aufgaben-Definitionen – in eine `.json`-Datei; „Arbeitsstand öffnen…“ lädt sie wieder, auch auf einem anderen Gerät. Ist ein Stand aus einer Datei aktiv, führt ein Hinweis oberhalb des Editors mit einem Klick zurück zu den Aufgaben aus `aufgaben.js`. Die Schaltflächen „Öffnen…“ / „Speichern“ betreffen davon unabhängig nur das aktuelle Programm als `.py`.
 
 ## Entwicklung & Tests
 

@@ -182,11 +182,18 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 10px;
+    flex-wrap: wrap;
+    gap: 8px 10px;
     margin-bottom: 10px;
   }
+  .panel-title .topbar-controls { min-width: 0; }
   .panel-title h2 { font-size: 1rem; font-weight: 600; }
   .panel-title .hint { font-size: 0.76rem; color: var(--ink-faint); }
+  /* Auf schmalen Screens die Knopfleiste in eine eigene, volle Zeile umbrechen,
+     damit die Beschriftungen nicht abgeschnitten werden. */
+  @media (max-width: 620px) {
+    .panel-title .topbar-controls { flex-basis: 100%; }
+  }
 
   /* ---------- Aufgabe ---------- */
   .task-box {
@@ -213,6 +220,21 @@
     line-height: 1.45;
     color: var(--ink);
   }
+  .stand-hinweis {
+    background: rgba(224, 169, 74, 0.13);
+    border-color: rgba(224, 169, 74, 0.5);
+  }
+  .link-btn {
+    background: none;
+    border: 0;
+    padding: 0;
+    color: var(--accent-strong);
+    font: inherit;
+    font-weight: 600;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+  .link-btn:hover { color: var(--accent); }
 
   /* ---------- Editor ---------- */
   .editor-wrap {
@@ -480,7 +502,7 @@
       </div>
     </div>
     <div class="topbar-controls">
-      <select id="examplePicker" class="example-picker" aria-label="Beispiel-Territorium laden"></select>
+      <select id="examplePicker" class="example-picker" aria-label="Aufgabe wählen"></select>
       <button class="btn btn-ghost btn-sm" id="btnHelp" type="button">Hilfe</button>
     </div>
   </header>
@@ -491,13 +513,17 @@
       <div class="panel-title">
         <h2>Programm</h2>
         <div class="topbar-controls">
-          <button class="btn btn-sm" id="btnLoadProgram" type="button">Öffnen…</button>
-          <button class="btn btn-sm" id="btnSaveProgram" type="button">Speichern</button>
+          <button class="btn btn-sm" id="btnLoadProgram" type="button" title="Nur das aktuelle Programm aus einer .py-Datei laden">Öffnen…</button>
+          <button class="btn btn-sm" id="btnSaveProgram" type="button" title="Nur das aktuelle Programm als .py-Datei speichern">Speichern</button>
+          <button class="btn btn-sm" id="btnSaveAll" type="button" title="Arbeitsstand aller Aufgaben – samt der Aufgaben selbst – als Datei sichern">Arbeitsstand sichern</button>
+          <button class="btn btn-sm" id="btnLoadAll" type="button" title="Zuvor gesicherten Arbeitsstand aus Datei öffnen">Arbeitsstand öffnen…</button>
           <input type="file" id="fileProgramInput" accept=".py,.txt" class="visually-hidden">
+          <input type="file" id="fileAllInput" accept=".json,application/json" class="visually-hidden">
         </div>
       </div>
 
       <div id="aufgabenHinweis" class="aufgaben-hinweis" style="display:none;"></div>
+      <div id="standHinweis" class="aufgaben-hinweis stand-hinweis" style="display:none;"></div>
 
       <div id="taskBox" class="task-box" style="display:none;">
         <b>Aufgabe:</b> <span id="taskText"></span>
@@ -630,6 +656,9 @@
 
     <h3>Eigene Aufgaben</h3>
     <p>Die Einträge der Auswahlliste stehen in der Datei <code>aufgaben.js</code> neben <code>index.html</code>. Sie ist kommentiert und kann direkt bearbeitet werden (Territorium als Textzeilen, Aufgabentext, Startprogramm) &ndash; danach die Seite neu laden.</p>
+
+    <h3>Bearbeitungsstand</h3>
+    <p>Der Bearbeitungsstand jeder Aufgabe (Programm und Territorium) bleibt beim Wechsel der Aufgabe und über das Neuladen der Seite hinweg erhalten &ndash; gespeichert im Browser. Mit &bdquo;Arbeitsstand sichern&ldquo; wird der Stand aller Aufgaben samt der Aufgaben selbst in eine <code>.json</code>-Datei geschrieben, &bdquo;Arbeitsstand öffnen&ldquo; lädt sie wieder &ndash; auch auf einem anderen Rechner. Ein geladener Stand lässt sich über den Hinweis oben jederzeit auf <code>aufgaben.js</code> zurücksetzen. &bdquo;Öffnen…&ldquo; / &bdquo;Speichern&ldquo; betreffen weiterhin nur das aktuelle Programm als <code>.py</code>.</p>
 
     <div class="modal-close-row"><button class="btn btn-primary" id="btnHelpClose" type="button">Schließen</button></div>
   </div>
@@ -1224,7 +1253,7 @@
   const $ = (id) => document.getElementById(id);
   const els = {
     examplePicker: $('examplePicker'), btnHelp: $('btnHelp'), helpBackdrop: $('helpBackdrop'), btnHelpClose: $('btnHelpClose'),
-    taskBox: $('taskBox'), taskText: $('taskText'), aufgabenHinweis: $('aufgabenHinweis'),
+    taskBox: $('taskBox'), taskText: $('taskText'), aufgabenHinweis: $('aufgabenHinweis'), standHinweis: $('standHinweis'),
     editorGutter: $('editorGutter'), editorGutterInner: $('editorGutterInner'),
     editorHighlight: $('editorHighlight'), editorCode: $('editorCode'), editorCodeInner: $('editorCodeInner'),
     editorTextarea: $('editorTextarea'),
@@ -1234,6 +1263,7 @@
     frameSlider: $('frameSlider'), frameLabel: $('frameLabel'), speedSlider: $('speedSlider'),
     consoleBox: $('consoleBox'), varMonitor: $('varMonitor'), varList: $('varList'),
     btnLoadProgram: $('btnLoadProgram'), btnSaveProgram: $('btnSaveProgram'), fileProgramInput: $('fileProgramInput'),
+    btnSaveAll: $('btnSaveAll'), btnLoadAll: $('btnLoadAll'), fileAllInput: $('fileAllInput'),
     btnModeRun: $('btnModeRun'), btnModeEdit: $('btnModeEdit'), editControls: $('editControls'),
     toolWall: $('toolWall'), toolGrain: $('toolGrain'), toolHamster: $('toolHamster'), toolErase: $('toolErase'),
     rowsInput: $('rowsInput'), colsInput: $('colsInput'), btnApplySize: $('btnApplySize'), btnClearGrid: $('btnClearGrid'),
@@ -1253,23 +1283,238 @@
     playing: false,
     playTimer: null,
     running: false,       // Programm laeuft gerade (Editor gesperrt)
+    tasks: EXAMPLES,      // aktive Aufgabenliste (aus aufgaben.js oder geladener Datei)
+    work: {},             // id -> { code: string|null, territoryDef: obj|null } – abweichender Bearbeitungsstand
+    currentId: null,      // aktuell gewaehlte Aufgabe
+    tasksFromFile: false, // Aufgabenliste stammt aus einer geladenen Datei
+    standSavedAt: null,   // Zeitstempel der geladenen Arbeitsstand-Datei
+    restoredCurrentId: null,
   };
 
-  /* ---------- Beispiel-Dropdown fuellen ---------- */
-  EXAMPLES.forEach((ex) => {
-    const opt = document.createElement('option');
-    opt.value = ex.id; opt.textContent = ex.title;
-    els.examplePicker.appendChild(opt);
-  });
+  /* =========================================================================
+   * 3b) BEARBEITUNGSSTAND: pro Aufgabe merken, lokal sichern/laden
+   * ======================================================================= */
+  const LS_KEY = 'hamsterbau.stand.v1';
 
-  function loadExample(id) {
-    const ex = EXAMPLES.find((e) => e.id === id) || EXAMPLES[0];
-    state.territoryDef = cloneDef(ex.territory);
-    setEditorText(ex.code);
-    if (ex.aufgabe) { els.taskBox.style.display = 'flex'; els.taskText.textContent = ex.aufgabe; }
+  function taskById(id) { return state.tasks.find((t) => t.id === id) || null; }
+
+  function populatePicker() {
+    els.examplePicker.innerHTML = '';
+    state.tasks.forEach((t) => {
+      const opt = document.createElement('option');
+      opt.value = t.id;
+      opt.textContent = t.title;
+      els.examplePicker.appendChild(opt);
+    });
+  }
+
+  function sameTerritory(a, b) {
+    try {
+      return a.rows === b.rows && a.cols === b.cols &&
+        a.hamster.row === b.hamster.row && a.hamster.col === b.hamster.col &&
+        a.hamster.dir === b.hamster.dir && (a.hamster.grain || 0) === (b.hamster.grain || 0) &&
+        JSON.stringify(a.grid) === JSON.stringify(b.grid);
+    } catch (e) { return false; }
+  }
+
+  // Aktuellen Editor- und Territoriumsstand der laufenden Aufgabe in state.work sichern.
+  function captureCurrent() {
+    if (!state.currentId) return;
+    const t = taskById(state.currentId);
+    const w = state.work[state.currentId] || (state.work[state.currentId] = {});
+    w.code = (t && els.editorTextarea.value === t.code) ? null : els.editorTextarea.value;
+    if (state.territoryDef) {
+      const cur = cloneDef(state.territoryDef);
+      w.territoryDef = (t && sameTerritory(cur, t.territory)) ? null : cur;
+    }
+  }
+
+  function selectTask(id) {
+    captureCurrent();
+    const t = taskById(id) || state.tasks[0];
+    if (!t) return;
+    state.currentId = t.id;
+    const w = state.work[t.id] || {};
+    state.territoryDef = cloneDef(w.territoryDef || t.territory);
+    setEditorText(w.code != null ? w.code : t.code);
+    if (t.aufgabe) { els.taskBox.style.display = 'flex'; els.taskText.textContent = t.aufgabe; }
     else { els.taskBox.style.display = 'none'; }
     exitRunState();
     resetView();
+    persist();
+  }
+  // Alter Name bleibt als Alias erhalten.
+  const loadExample = selectTask;
+
+  let persistTimer = null;
+  function schedulePersist() {
+    if (persistTimer) return;
+    persistTimer = setTimeout(() => { persistTimer = null; persist(); }, 500);
+  }
+  function persist() {
+    captureCurrent();
+    try {
+      const payload = {
+        v: 1,
+        currentId: state.currentId,
+        fromFile: !!state.tasksFromFile,
+        savedAt: state.standSavedAt || null,
+        tasks: state.tasksFromFile ? state.tasks.map(serializeTask) : null,
+        work: {},
+      };
+      Object.keys(state.work).forEach((id) => {
+        const w = state.work[id];
+        if (!w) return;
+        const e = {};
+        if (typeof w.code === 'string') e.code = w.code;
+        if (w.territoryDef) e.territoryDef = w.territoryDef;
+        if (e.code != null || e.territoryDef) payload.work[id] = e;
+      });
+      localStorage.setItem(LS_KEY, JSON.stringify(payload));
+    } catch (e) { /* kein localStorage (Privatmodus o. Ae.) – nur Session */ }
+  }
+  function restore() {
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(LS_KEY) || 'null'); } catch (e) { saved = null; }
+    if (!saved || saved.v !== 1) return;
+    if (saved.fromFile && Array.isArray(saved.tasks) && saved.tasks.length) {
+      const tasks = [];
+      saved.tasks.forEach((a, i) => { const t = deserializeTask(a, i); if (t) tasks.push(t); });
+      if (tasks.length) {
+        state.tasks = tasks;
+        state.tasksFromFile = true;
+        state.standSavedAt = saved.savedAt || null;
+      }
+    }
+    if (saved.work && typeof saved.work === 'object') {
+      Object.keys(saved.work).forEach((id) => {
+        const e = saved.work[id] || {};
+        state.work[id] = {
+          code: typeof e.code === 'string' ? e.code : null,
+          territoryDef: e.territoryDef ? normalizeTerritoryDef(e.territoryDef) : null,
+        };
+      });
+    }
+    state.restoredCurrentId = saved.currentId || null;
+  }
+
+  /* ---------- Aufgaben serialisieren / einlesen ---------- */
+  function serializeTask(t) {
+    return { id: t.id, titel: t.title, aufgabe: t.aufgabe, territorium: t.territory, standardcode: t.code };
+  }
+  function normalizeTerritoryDef(raw) {
+    if (raw && Array.isArray(raw.grid) && raw.grid.length && raw.hamster) {
+      const rows = raw.rows || raw.grid.length;
+      const cols = raw.cols || (raw.grid[0] ? raw.grid[0].length : 0);
+      const grid = raw.grid.map((row) => row.map((c) => ({ wall: !!(c && c.wall), grain: Math.max(0, (c && c.grain) | 0) })));
+      let hr = Math.min(Math.max(0, (raw.hamster.row | 0)), rows - 1);
+      let hc = Math.min(Math.max(0, (raw.hamster.col | 0)), cols - 1);
+      if (grid[hr] && grid[hr][hc] && grid[hr][hc].wall) {
+        outer: for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) if (!grid[r][c].wall) { hr = r; hc = c; break outer; }
+      }
+      return {
+        name: raw.name || 'Territorium', rows: rows, cols: cols, grid: grid,
+        hamster: { row: hr, col: hc, dir: (((raw.hamster.dir | 0) % 4) + 4) % 4, grain: Math.max(0, (raw.hamster.grain | 0)) },
+      };
+    }
+    if (Array.isArray(raw) && raw.length && raw.every((r) => typeof r === 'string') && raw.every((r) => r.length === raw[0].length)) {
+      return T(raw, { row: 1, col: 1, dir: 1, grain: 0 }, 'Territorium');
+    }
+    return null;
+  }
+  function deserializeTask(a, i) {
+    if (!a || typeof a !== 'object') return null;
+    const terr = normalizeTerritoryDef(a.territorium || a.territory);
+    if (!terr) return null;
+    return {
+      id: String(a.id || ('aufgabe' + (i + 1))),
+      title: String(a.titel || a.title || a.id || ('Aufgabe ' + (i + 1))),
+      aufgabe: a.aufgabe ? String(a.aufgabe) : '',
+      territory: terr,
+      code: a.standardcode != null ? String(a.standardcode) : (a.code != null ? String(a.code) : '# Schreibe hier dein Hamster-Programm...\n'),
+    };
+  }
+
+  /* ---------- Arbeitsstand als Datei sichern / laden ---------- */
+  function saveArbeitsstand() {
+    captureCurrent();
+    const data = {
+      schema: 'hamsterbau-arbeitsstand-v1',
+      gespeichert: new Date().toISOString(),
+      aktuelleAufgabe: state.currentId,
+      aufgaben: state.tasks.map((t) => {
+        const w = state.work[t.id] || {};
+        return {
+          id: t.id,
+          titel: t.title,
+          aufgabe: t.aufgabe,
+          territorium: w.territoryDef || t.territory,
+          standardcode: t.code,
+          arbeitsstand: (w.code != null ? w.code : t.code),
+        };
+      }),
+    };
+    downloadFile('hamsterbau-arbeitsstand.json', JSON.stringify(data, null, 2), 'application/json');
+  }
+  function loadArbeitsstand(text) {
+    const data = JSON.parse(text);
+    if (!data || data.schema !== 'hamsterbau-arbeitsstand-v1' || !Array.isArray(data.aufgaben) || !data.aufgaben.length) {
+      throw new Error('Kein gültiger Hamsterbau-Arbeitsstand.');
+    }
+    const tasks = [];
+    const work = {};
+    const seen = new Set();
+    data.aufgaben.forEach((a, i) => {
+      const t = deserializeTask(a, i);
+      if (!t) return;
+      if (seen.has(t.id)) t.id += '-' + (i + 1);
+      seen.add(t.id);
+      tasks.push(t);
+      if (a.arbeitsstand != null && String(a.arbeitsstand) !== t.code) {
+        work[t.id] = { code: String(a.arbeitsstand), territoryDef: null };
+      }
+    });
+    if (!tasks.length) throw new Error('Die Datei enthält keine lesbaren Aufgaben.');
+    state.tasks = tasks;
+    state.work = work;
+    state.tasksFromFile = true;
+    state.standSavedAt = data.gespeichert || null;
+    state.currentId = null;
+    populatePicker();
+    const cur = tasks.some((t) => t.id === data.aktuelleAufgabe) ? data.aktuelleAufgabe : tasks[0].id;
+    els.examplePicker.value = cur;
+    selectTask(cur);
+    showStandHinweis();
+  }
+  function useAufgabenJs() {
+    captureCurrent();
+    const keep = {};
+    EXAMPLES.forEach((t) => {
+      const w = state.work[t.id];
+      if (w && typeof w.code === 'string') keep[t.id] = { code: w.code, territoryDef: null };
+    });
+    state.tasks = EXAMPLES;
+    state.work = keep;
+    state.tasksFromFile = false;
+    state.standSavedAt = null;
+    populatePicker();
+    const cur = EXAMPLES.some((t) => t.id === state.currentId) ? state.currentId : EXAMPLES[0].id;
+    state.currentId = null;
+    els.examplePicker.value = cur;
+    selectTask(cur);
+    els.standHinweis.style.display = 'none';
+  }
+  function showStandHinweis() {
+    const d = state.standSavedAt ? new Date(state.standSavedAt) : null;
+    const when = d && !isNaN(d.getTime()) ? ' (Datei vom ' + d.toLocaleString('de-DE') + ')' : '';
+    els.standHinweis.textContent = 'Geladener Arbeitsstand aktiv' + when + '. ';
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'link-btn';
+    btn.textContent = 'Aufgaben aus aufgaben.js verwenden';
+    btn.addEventListener('click', useAufgabenJs);
+    els.standHinweis.appendChild(btn);
+    els.standHinweis.style.display = 'block';
   }
 
   function cloneDef(def) {
@@ -1347,7 +1592,7 @@
     els.editorGutterInner.style.transform = 'translateY(' + (-y) + 'px)';
     els.editorCodeInner.style.transform = 'translate(' + (-x) + 'px, ' + (-y) + 'px)';
   }
-  els.editorTextarea.addEventListener('input', refreshEditor);
+  els.editorTextarea.addEventListener('input', () => { refreshEditor(); schedulePersist(); });
   els.editorTextarea.addEventListener('scroll', () => {
     syncEditorScroll();
     positionHighlight();
@@ -1360,6 +1605,7 @@
       ta.value = ta.value.slice(0, s) + '    ' + ta.value.slice(en);
       ta.selectionStart = ta.selectionEnd = s + 4;
       refreshEditor();
+      schedulePersist();
     } else if (e.key === 'Enter') {
       const ta = els.editorTextarea;
       const s = ta.selectionStart;
@@ -1372,6 +1618,7 @@
       ta.value = ta.value.slice(0, s) + '\n' + indent + ta.value.slice(ta.selectionEnd);
       ta.selectionStart = ta.selectionEnd = s + 1 + indent.length;
       refreshEditor();
+      schedulePersist();
     }
   });
 
@@ -1516,7 +1763,7 @@
     ).join('');
   }
 
-  /* ---------- Programm speichern / laden ---------- */
+  /* ---------- Aktuelles Programm speichern / laden (.py) ---------- */
   els.btnSaveProgram.addEventListener('click', () => {
     downloadFile('hamster-programm.py', els.editorTextarea.value, 'text/x-python');
   });
@@ -1525,10 +1772,31 @@
     const file = els.fileProgramInput.files[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = () => { exitRunState(); setEditorText(String(reader.result)); };
+    reader.onload = () => { exitRunState(); setEditorText(String(reader.result)); captureCurrent(); persist(); };
     reader.readAsText(file);
     els.fileProgramInput.value = '';
   });
+
+  /* ---------- Kompletten Arbeitsstand speichern / laden (.json) ---------- */
+  els.btnSaveAll.addEventListener('click', saveArbeitsstand);
+  els.btnLoadAll.addEventListener('click', () => els.fileAllInput.click());
+  els.fileAllInput.addEventListener('change', () => {
+    const file = els.fileAllInput.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        loadArbeitsstand(String(reader.result));
+      } catch (err) {
+        alert('Diese Datei konnte nicht als Arbeitsstand gelesen werden.\n\n' + (err && err.message ? err.message : err));
+      }
+    };
+    reader.readAsText(file);
+    els.fileAllInput.value = '';
+  });
+
+  window.addEventListener('pagehide', persist);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') persist(); });
 
   /* ---------- Hilfe-Modal ---------- */
   els.btnHelp.addEventListener('click', () => els.helpBackdrop.classList.add('open'));
@@ -1743,6 +2011,8 @@
   els.btnDoneEdit.addEventListener('click', () => {
     state.territoryDef = cloneDef(state.editDef);
     switchMode('run');
+    captureCurrent();
+    persist();
   });
 
   els.btnSaveTerritory.addEventListener('click', () => {
@@ -1770,9 +2040,14 @@
   /* =========================================================================
    * 7) START
    * ======================================================================= */
-  els.examplePicker.value = EXAMPLES[0].id;
-  loadExample(EXAMPLES[0].id);
-  if (aufgabenFehler.length) {
+  restore();                         // gespeicherten Stand einlesen (Aufgabenliste, Bearbeitungsstand, letzte Auswahl)
+  populatePicker();
+  if (state.tasksFromFile) showStandHinweis();
+  const startId = (state.restoredCurrentId && state.tasks.some((t) => t.id === state.restoredCurrentId))
+    ? state.restoredCurrentId : state.tasks[0].id;
+  els.examplePicker.value = startId;
+  selectTask(startId);
+  if (!state.tasksFromFile && aufgabenFehler.length) {
     els.aufgabenHinweis.style.display = 'block';
     els.aufgabenHinweis.textContent = (aufgabenFehler.length === 1 && aufgabenFehler[0].indexOf('nicht gefunden') !== -1)
       ? 'Hinweis: ' + aufgabenFehler[0] + ' Es wird ein leeres Territorium angezeigt.'
