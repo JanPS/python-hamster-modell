@@ -587,6 +587,10 @@
           <button class="btn tool-btn btn-sm" id="toolErase" type="button" data-tool="erase">✕ Radieren</button>
         </div>
         <div class="size-row">
+          <label for="grainInput">🐹 Körner im Maul (Start)</label>
+          <input type="number" id="grainInput" min="0" max="99" value="0">
+        </div>
+        <div class="size-row">
           <label for="rowsInput">Zeilen</label>
           <input type="number" id="rowsInput" min="3" max="24" value="8">
           <label for="colsInput">Spalten</label>
@@ -654,6 +658,8 @@
 
     <h3>Bedienung</h3>
     <p>Territorium wählen oder unter &bdquo;Territorium bauen&ldquo; selbst gestalten, Programm links eintippen (mit Monospace-Schrift und Syntax-Hervorhebung), auf &bdquo;Start&ldquo; drücken. Danach lässt sich der Ablauf Schritt für Schritt vor- und zurückspulen oder automatisch abspielen. Der Variablen-Monitor unter der Ausgabe zeigt zu jedem Schritt den aktuellen Wert aller Variablen.</p>
+
+    <p>Im Territoriums-Editor legt das Feld &bdquo;Körner im Maul (Start)&ldquo; fest, mit wie vielen Körnern der Hamster beginnt; der Hamster auf dem Spielfeld zeigt diese Zahl als kleine Marke.</p>
 
     <h3>Eigene Aufgaben</h3>
     <p>Die Einträge der Auswahlliste stehen in der Datei <code>aufgaben.js</code> neben <code>index.html</code>. Sie ist kommentiert und kann direkt bearbeitet werden (Territorium als Textzeilen, Aufgabentext, Startprogramm) &ndash; danach die Seite neu laden.</p>
@@ -1267,7 +1273,7 @@
     btnSaveAll: $('btnSaveAll'), btnLoadAll: $('btnLoadAll'), fileAllInput: $('fileAllInput'),
     btnModeRun: $('btnModeRun'), btnModeEdit: $('btnModeEdit'), editControls: $('editControls'),
     toolWall: $('toolWall'), toolGrain: $('toolGrain'), toolHamster: $('toolHamster'), toolErase: $('toolErase'),
-    rowsInput: $('rowsInput'), colsInput: $('colsInput'), btnApplySize: $('btnApplySize'), btnClearGrid: $('btnClearGrid'),
+    rowsInput: $('rowsInput'), colsInput: $('colsInput'), grainInput: $('grainInput'), btnApplySize: $('btnApplySize'), btnClearGrid: $('btnClearGrid'),
     btnSaveTerritory: $('btnSaveTerritory'), btnLoadTerritory: $('btnLoadTerritory'), fileTerritoryInput: $('fileTerritoryInput'),
     btnDoneEdit: $('btnDoneEdit'),
     canvas: $('stage'), statDir: $('statDir'), statGrain: $('statGrain'), statPos: $('statPos'),
@@ -1886,6 +1892,20 @@
     ctx.beginPath(); ctx.moveTo(0, -s * 0.72); ctx.lineTo(-s * 0.16, -s * 0.4); ctx.lineTo(s * 0.16, -s * 0.4); ctx.closePath();
     ctx.fillStyle = cInk; ctx.fill();
     ctx.restore();
+
+    // Körner im Maul: kleine Sprechblase oben rechts am Hamster-Feld
+    if (snap.hGrain > 0) {
+      const br = Math.max(7, cell * 0.2);
+      const bx = snap.hCol * cell + cell - br - 2;
+      const by = snap.hRow * cell + br + 2;
+      ctx.beginPath(); ctx.arc(bx, by, br, 0, Math.PI * 2);
+      ctx.fillStyle = cPaper2; ctx.fill();
+      ctx.strokeStyle = cAccent; ctx.lineWidth = 1.5; ctx.stroke();
+      ctx.fillStyle = cAccent;
+      ctx.font = '600 ' + Math.round(br * 1.15) + 'px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(String(snap.hGrain), bx, by + 1);
+    }
   }
 
   function resetView() {
@@ -1910,8 +1930,7 @@
     if (mode === 'edit') {
       exitRunState();
       state.editDef = cloneDef(state.territoryDef);
-      els.rowsInput.value = state.editDef.rows;
-      els.colsInput.value = state.editDef.cols;
+      syncEditInputs();
       els.editControls.style.display = 'block';
       els.btnModeEdit.classList.add('active');
       els.btnModeRun.classList.remove('active');
@@ -1934,9 +1953,24 @@
     });
   });
 
+  function syncEditInputs() {
+    els.rowsInput.value = state.editDef.rows;
+    els.colsInput.value = state.editDef.cols;
+    els.grainInput.value = state.editDef.hamster.grain || 0;
+  }
+
+  els.grainInput.addEventListener('input', () => {
+    if (!state.editDef) return;
+    const n = parseInt(els.grainInput.value, 10);
+    state.editDef.hamster.grain = Math.max(0, Math.min(99, isFinite(n) ? n : 0));
+    drawEditGrid();
+  });
+  els.grainInput.addEventListener('blur', syncEditInputs);
+
   function drawEditGrid() {
-    const snap = { rows: state.editDef.rows, cols: state.editDef.cols, grid: state.editDef.grid, hRow: state.editDef.hamster.row, hCol: state.editDef.hamster.col, hDir: state.editDef.hamster.dir, hGrain: state.editDef.hamster.grain };
+    const snap = { rows: state.editDef.rows, cols: state.editDef.cols, grid: state.editDef.grid, hRow: state.editDef.hamster.row, hCol: state.editDef.hamster.col, hDir: state.editDef.hamster.dir, hGrain: state.editDef.hamster.grain || 0 };
     drawTerritory(snap, true);
+    updateStats(snap);
   }
 
   els.canvas.addEventListener('click', (e) => {
@@ -1970,12 +2004,14 @@
     const newRows = Math.max(3, Math.min(24, parseInt(els.rowsInput.value, 10) || state.editDef.rows));
     const newCols = Math.max(3, Math.min(28, parseInt(els.colsInput.value, 10) || state.editDef.cols));
     state.editDef = resizeDef(state.editDef, newRows, newCols);
+    syncEditInputs();
     drawEditGrid();
   });
   els.btnClearGrid.addEventListener('click', () => {
     const r = Math.max(3, Math.min(24, parseInt(els.rowsInput.value, 10) || 8));
     const c = Math.max(3, Math.min(28, parseInt(els.colsInput.value, 10) || 10));
     state.editDef = blankDef(r, c);
+    syncEditInputs();
     drawEditGrid();
   });
 
@@ -2028,9 +2064,11 @@
     reader.onload = () => {
       try {
         const obj = JSON.parse(String(reader.result));
-        if (!obj.rows || !obj.cols || !obj.grid || !obj.hamster) throw new Error('ungültiges Format');
-        state.editDef = { name: obj.name || 'Geladenes Territorium', rows: obj.rows, cols: obj.cols, grid: obj.grid, hamster: obj.hamster };
-        els.rowsInput.value = obj.rows; els.colsInput.value = obj.cols;
+        const def = normalizeTerritoryDef(obj);
+        if (!def) throw new Error('ungültiges Format');
+        def.name = obj.name || 'Geladenes Territorium';
+        state.editDef = def;
+        syncEditInputs();
         drawEditGrid();
       } catch (err) { alert('Diese Datei konnte nicht als Territorium gelesen werden.'); }
     };

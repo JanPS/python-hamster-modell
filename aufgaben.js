@@ -135,6 +135,26 @@ window.HAMSTERBAU_AUFGABEN = [
   },
 
   {
+    id: 'koerner-verteilen',
+    titel: 'Körner verteilen',
+    aufgabe: 'Der Hamster hat 5 Körner im Maul. Lege auf jedes freie Feld der Reihe genau ein Korn.',
+    territorium: [
+      '#######',
+      '#.....#',
+      '#######',
+    ],
+    start: { zeile: 1, spalte: 1, richtung: 'O', koerner: 5 },
+    code: [
+      '# Tipp: solange das Maul nicht leer ist ...',
+      'while not maulLeer():',
+      '    gib()',
+      '    if vornFrei():',
+      '        vor()',
+      '',
+    ].join('\n'),
+  },
+
+  {
     id: 'leer',
     titel: 'Leeres Territorium',
     aufgabe: '',

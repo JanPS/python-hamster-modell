@@ -249,7 +249,31 @@ linksUm()
     check('aufgaben.js: jede Aufgabe hat id/titel/territorium, Zeilen gleich lang', strukturOk);
     check('aufgaben.js: ids eindeutig', ids.size === (list ? list.length : 0), [...ids].join(','));
     check('aufgaben.js: kein Hamster startet auf einer Wand', startOk);
+    const koernerOk = (list || []).every((a) => {
+      const k = a.start && a.start.koerner;
+      return k === undefined || (Number.isFinite(k) && k >= 0);
+    });
+    check('aufgaben.js: start.koerner (falls gesetzt) ist eine nicht-negative Zahl', koernerOk);
   }
+}
+
+// Test 13: Hamster mit Körnern im Maul zu Beginn
+{
+  const territory = makeTerritory(['#######', '#.....#', '#######'], { row: 1, col: 1, dir: 1, grain: 3 });
+  const result = new Interpreter(territory).run(parse('print(maulLeer())\ngib()\nvor()\ngib()\n'));
+  check('start-koerner: kein fehler', result.error === null, result.error);
+  const printFrame = result.frames.find((f) => f.label.startsWith('print'));
+  check('start-koerner: maulLeer() ist False', printFrame.console.trim() === 'False', JSON.stringify(printFrame.console));
+  const last = result.frames[result.frames.length - 1];
+  check('start-koerner: nach 2x gib() noch 1 Korn im Maul', last.snapshot.hGrain === 1, last.snapshot.hGrain);
+  check('start-koerner: erstes Startfeld hat jetzt 1 Korn', last.snapshot.grid[1][1].grain === 1, last.snapshot.grid[1][1].grain);
+}
+
+// Test 14: gib() ohne Korn im Maul bleibt ein Fehler
+{
+  const territory = makeTerritory(['###', '#.#', '###'], { row: 1, col: 1, dir: 1, grain: 0 });
+  const result = new Interpreter(territory).run(parse('gib()\n'));
+  check('gib-ohne-korn: fehler erkannt', result.error && result.error.includes('Maul'), result.error);
 }
 
 console.log(failures === 0 ? '\nALLE TESTS OK' : `\n${failures} TEST(S) FEHLGESCHLAGEN`);
